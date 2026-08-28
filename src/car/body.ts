@@ -99,7 +99,76 @@ const botExp = new Profile([
   [1.0, 3.2],
 ])
 
+const TAU = Math.PI * 2
+const wrap = (a: number) => {
+  let v = a % TAU
+  if (v > Math.PI) v -= TAU
+  if (v < -Math.PI) v += TAU
+  return v
+}
+
 const signPow = (v: number, e: number) => Math.sign(v) * Math.pow(Math.abs(v), e)
+
+/**
+ * Character lines. Everything else on this body is a smooth blend, which is
+ * exactly why it reads as extruded rather than designed — a car is large soft
+ * surfaces meeting at a few deliberate hard breaks, and it was missing all of
+ * the breaks.
+ *
+ * Each line is a ridge in parameter space: an angle that travels along the car
+ * and an amplitude that fades in and out, drawn as a linear tent so the slope
+ * flips sign at the peak. The tent is what makes a highlight snap instead of
+ * sliding. Two lines only — a shoulder down the flank and a crown over the
+ * front wing. A third starts to look busy.
+ *
+ * theta is measured from the widest point of the section, so the mirrored line
+ * on the far side sits at PI - theta.
+ */
+interface Feature {
+  theta: Profile
+  amp: Profile
+  width: number
+}
+
+const FEATURES: Feature[] = [
+  {
+    // Shoulder: sits just above the waist and runs the length of the car.
+    theta: new Profile([
+      [0.0, 0.3],
+      [0.22, 0.34], // over the rear haunch
+      [0.5, 0.4],
+      [0.78, 0.36], // over the front fender
+      [1.0, 0.3],
+    ]),
+    amp: new Profile([
+      [0.0, 0.0],
+      [0.07, 0.012],
+      [0.3, 0.015],
+      [0.7, 0.015],
+      [0.92, 0.009],
+      [1.0, 0.0],
+    ]),
+    width: 0.075,
+  },
+  {
+    // Fender crown: only over the front wing, dying before the windscreen.
+    theta: new Profile([
+      [0.0, 0.95],
+      [0.7, 0.95],
+      [0.84, 1.02],
+      [1.0, 1.05],
+    ]),
+    amp: new Profile([
+      [0.0, 0.0],
+      [0.68, 0.0],
+      [0.79, 0.013],
+      [0.9, 0.011],
+      [0.98, 0.0],
+      [1.0, 0.0],
+    ]),
+    width: 0.085,
+  },
+]
 
 interface BodyPoint {
   x: number
@@ -155,6 +224,26 @@ function section(u: number, theta: number): BodyPoint {
     if (band > 0) z *= 1 - 0.16 * intake * smoothstep(0, 1, band)
   }
 
+  // --- character lines -----------------------------------------------------
+  // Push the surface out along a narrow tent centred on each line. The tent is
+  // linear rather than smooth on purpose: its slope flips sign at the peak, and
+  // that discontinuity is the whole point — it is what a crease is.
+  for (const f of FEATURES) {
+    const a = f.amp.at(u)
+    if (a <= 0) continue
+    const base = f.theta.at(u)
+    for (const centre of [base, Math.PI - base]) {
+      const d = Math.abs(wrap(theta - centre))
+      if (d >= f.width) continue
+      const push = a * (1 - d / f.width)
+      // Outward in the section plane, measured from the shoulder line.
+      const ny = y - yc
+      const len = Math.hypot(z, ny) || 1
+      z += (z / len) * push
+      y += (ny / len) * push
+    }
+  }
+
   // --- carve the wheel arches --------------------------------------------
   // Push the lower surface up onto a circle centred on each axle, blended in
   // by how far outboard the vertex sits, so the rocker panel stays low.
@@ -175,14 +264,6 @@ function section(u: number, theta: number): BodyPoint {
 }
 
 export type Surface = 'paint' | 'glass' | 'carbon'
-
-const TAU = Math.PI * 2
-const wrap = (a: number) => {
-  let v = a % TAU
-  if (v > Math.PI) v -= TAU
-  if (v < -Math.PI) v += TAU
-  return v
-}
 
 /**
  * Materials are assigned in (u, theta) parameter space rather than in world
@@ -233,15 +314,58 @@ function surfaceAtParam(u: number, theta: number): Surface {
 
 export const BODY_RES = { stations: 264, ring: 152 }
 
+interface Anchor {
+  j: number
+  theta: (u: number) => number
+}
+
 /**
- * The angles sampled around one cross-section, as a table rather than an
- * expression. Uniform today — but character lines need specific columns to land
- * on specific angles, and those angles move along the car, so the ring has to
- * be addressable per station.
+ * Columns pinned to the character lines. The angle each one carries travels
+ * along the car, but the column index it lives in must not: parameterise the
+ * ring differently at each station and the surface kinks between them.
  */
-function ringAngles(_u: number, ring: number): number[] {
+function featureColumns(ring: number): Anchor[] {
+  const all: Anchor[] = []
+  for (const f of FEATURES) {
+    const ref = f.theta.at(0.5)
+    all.push({ j: Math.round((ref / TAU) * ring), theta: (u) => f.theta.at(u) })
+    all.push({
+      j: Math.round(((Math.PI - ref) / TAU) * ring),
+      theta: (u) => Math.PI - f.theta.at(u),
+    })
+  }
+  all.sort((a, b) => a.j - b.j)
+  // A monotonic warp needs strictly increasing anchors, so drop any that
+  // collide with their neighbour or land on the seam.
+  const kept: Anchor[] = []
+  for (const c of all) {
+    if (c.j <= 0 || c.j >= ring) continue
+    if (kept.length && c.j <= kept[kept.length - 1].j) continue
+    kept.push(c)
+  }
+  return kept
+}
+
+/**
+ * The angles sampled around one cross-section. A piecewise-linear warp of
+ * column index onto angle, exact at every anchor — so a sample always lands on
+ * the peak of a character line rather than straddling it.
+ */
+function ringAngles(u: number, ring: number, anchors: Anchor[]): number[] {
+  const knots = [
+    { j: 0, t: 0 },
+    ...anchors.map((a) => ({ j: a.j, t: a.theta(u) })),
+    { j: ring, t: TAU },
+  ]
   const out = new Array<number>(ring + 1)
-  for (let j = 0; j <= ring; j++) out[j] = (j / ring) * Math.PI * 2
+  let k = 0
+  for (let j = 0; j <= ring; j++) {
+    while (k < knots.length - 2 && j > knots[k + 1].j) k++
+    const a = knots[k]
+    const b = knots[k + 1]
+    const f = b.j === a.j ? 0 : (j - a.j) / (b.j - a.j)
+    out[j] = a.t + (b.t - a.t) * f
+  }
   return out
 }
 
@@ -250,10 +374,11 @@ export function buildBodyGeometry(stations = BODY_RES.stations, ring = BODY_RES.
   const positions: number[] = []
   const grid: number[][] = []
   const angles: number[][] = []
+  const anchors = featureColumns(ring)
 
   for (let i = 0; i < stations; i++) {
     const u = i / (stations - 1)
-    const theta = ringAngles(u, ring)
+    const theta = ringAngles(u, ring, anchors)
     angles.push(theta)
     const row: number[] = []
     for (let j = 0; j < cols; j++) {
