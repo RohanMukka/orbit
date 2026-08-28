@@ -7,7 +7,7 @@ import { buildTailLight, buildHeadLights, buildDucktail, buildMirrors, buildSpli
 import { useStore, peek, type ViewMode } from '../state'
 
 const FINISH = {
-  gloss: { metalness: 0.62, roughness: 0.17, clearcoat: 1, clearcoatRoughness: 0.04, sheen: 0.4 },
+  gloss: { metalness: 0.6, roughness: 0.21, clearcoat: 1, clearcoatRoughness: 0.06, sheen: 0.4 },
   satin: { metalness: 0.5, roughness: 0.44, clearcoat: 0.35, clearcoatRoughness: 0.4, sheen: 0.25 },
   chrome: { metalness: 1, roughness: 0.045, clearcoat: 1, clearcoatRoughness: 0.02, sheen: 0 },
 } as const
@@ -15,7 +15,7 @@ const FINISH = {
 /** Clay and blueprint passes share one material, so the shell's three groups collapse. */
 function StudyMaterial({ view, tint = '#8d939c' }: { view: ViewMode; tint?: string }) {
   if (view === 'wire') {
-    return <meshBasicMaterial color="#6ee7ff" wireframe transparent opacity={0.42} toneMapped={false} />
+    return <meshBasicMaterial color="#6ee7ff" wireframe transparent opacity={0.32} toneMapped={false} />
   }
   return <meshStandardMaterial color={tint} roughness={0.78} metalness={0.02} envMapIntensity={0.35} />
 }
@@ -77,7 +77,7 @@ export function Car(props: ComponentProps<'group'>) {
   const study = view !== 'render'
 
   const body = useMemo(() => buildBodyGeometry(), [])
-  const wireBody = useMemo(() => buildBodyGeometry(72, 48), [])
+  const wireBody = useMemo(() => buildBodyGeometry(60, 40), [])
   const tail = useMemo(() => buildTailLight(), [])
   const head = useMemo(() => buildHeadLights(), [])
   const ducktail = useMemo(() => buildDucktail(), [])

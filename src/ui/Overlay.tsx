@@ -53,7 +53,7 @@ function Configurator() {
   const open = chapter >= 1
 
   return (
-    <div className={`panel ${open ? 'panel--open' : ''}`}>
+    <div className={`panel ${open ? 'panel--open' : ''} ${chapter >= 3 ? 'panel--focus' : ''}`}>
       <div className="panel__head">
         <span className="micro">Configurator</span>
         <span className="micro micro--dim">{paint.name}</span>

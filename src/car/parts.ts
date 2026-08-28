@@ -42,12 +42,12 @@ export function buildHeadLights() {
 export function buildDucktail() {
   const pts: THREE.Vector3[] = []
   for (let i = 0; i <= 40; i++) {
-    const th = 0.42 + (i / 40) * (Math.PI - 0.84)
-    const p = bodyPoint(0.055, th)
-    pts.push(new THREE.Vector3(p.x - 0.02, p.y + 0.035, p.z))
+    const th = 0.78 + (i / 40) * (Math.PI - 1.56)
+    const p = bodyPoint(0.06, th)
+    pts.push(new THREE.Vector3(p.x - 0.015, p.y + 0.028, p.z))
   }
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.4)
-  return new THREE.TubeGeometry(curve, 96, 0.022, 8, false)
+  return new THREE.TubeGeometry(curve, 96, 0.019, 8, false)
 }
 
 /** Camera-pod mirrors on thin stalks. */

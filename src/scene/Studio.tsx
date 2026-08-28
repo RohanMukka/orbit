@@ -61,7 +61,7 @@ function StudioRig() {
   const group = useRef<THREE.Group>(null!)
   useFrame((state, dt) => {
     const s = peek()
-    const target = s.chapter === 2 ? state.clock.elapsedTime * 0.35 : 0
+    const target = s.chapter === 2 ? state.clock.elapsedTime * 0.22 : 0
     group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, target, 1.2, dt)
   })
 
@@ -69,12 +69,14 @@ function StudioRig() {
     <Environment resolution={256} frames={Infinity}>
       <color attach="background" args={['#04050a']} />
       <group ref={group}>
-        <Lightformer form="rect" intensity={3.2 * k} position={[0, 6, 0]} scale={[12, 6, 1]} rotation={[Math.PI / 2, 0, 0]} color="#ffffff" />
-        <Lightformer form="rect" intensity={7 * k} position={[0, 3.2, 4]} scale={[9, 0.26, 1]} rotation={[0, 0, 0]} target={[0, 0, 0]} color="#eef4ff" />
-        <Lightformer form="rect" intensity={7 * k} position={[0, 3.2, -4]} scale={[9, 0.26, 1]} target={[0, 0, 0]} color="#eef4ff" />
-        <Lightformer form="rect" intensity={6 * k} position={[6, 2, 2]} scale={[3, 4, 1]} target={[0, 0, 0]} color="#ffb28a" />
+        <Lightformer form="rect" intensity={2.1 * k} position={[0, 6.6, 0]} scale={[10, 4.2, 1]} rotation={[Math.PI / 2, 0, 0]} color="#ffffff" />
+        <Lightformer form="rect" intensity={6 * k} position={[0, 3.1, 4.2]} scale={[10, 0.2, 1]} rotation={[0, 0, 0]} target={[0, 0, 0]} color="#eef4ff" />
+        <Lightformer form="rect" intensity={6 * k} position={[0, 3.1, -4.2]} scale={[10, 0.2, 1]} target={[0, 0, 0]} color="#eef4ff" />
+        <Lightformer form="rect" intensity={4.2 * k} position={[6.4, 2, 2]} scale={[2.6, 3.4, 1]} target={[0, 0, 0]} color="#ffb28a" />
         <Lightformer form="rect" intensity={(night ? 2.4 : 4) * 1} position={[-7, 2.4, -3]} scale={[4, 4, 1]} target={[0, 0, 0]} color="#7fb6ff" />
         <Lightformer form="ring" intensity={3 * k} position={[-4, 1, 6]} scale={3} target={[0, 0, 0]} color="#ffffff" />
+        {/* fill for the rear three-quarter shot, where the deck would go flat */}
+        <Lightformer form="rect" intensity={3.4 * k} position={[-5, 3, 5]} scale={[4, 2.4, 1]} target={[0, 0, 0]} color="#dce8ff" />
       </group>
     </Environment>
   )
