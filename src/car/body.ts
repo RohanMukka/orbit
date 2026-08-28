@@ -233,17 +233,31 @@ function surfaceAtParam(u: number, theta: number): Surface {
 
 export const BODY_RES = { stations: 264, ring: 152 }
 
+/**
+ * The angles sampled around one cross-section, as a table rather than an
+ * expression. Uniform today — but character lines need specific columns to land
+ * on specific angles, and those angles move along the car, so the ring has to
+ * be addressable per station.
+ */
+function ringAngles(_u: number, ring: number): number[] {
+  const out = new Array<number>(ring + 1)
+  for (let j = 0; j <= ring; j++) out[j] = (j / ring) * Math.PI * 2
+  return out
+}
+
 export function buildBodyGeometry(stations = BODY_RES.stations, ring = BODY_RES.ring): THREE.BufferGeometry {
   const cols = ring + 1 // duplicate seam column for clean normals
   const positions: number[] = []
   const grid: number[][] = []
+  const angles: number[][] = []
 
   for (let i = 0; i < stations; i++) {
     const u = i / (stations - 1)
+    const theta = ringAngles(u, ring)
+    angles.push(theta)
     const row: number[] = []
     for (let j = 0; j < cols; j++) {
-      const theta = (j / ring) * Math.PI * 2
-      const p = section(u, theta)
+      const p = section(u, theta[j])
       row.push(positions.length / 3)
       positions.push(p.x, p.y, p.z)
     }
@@ -266,7 +280,9 @@ export function buildBodyGeometry(stations = BODY_RES.stations, ring = BODY_RES.
   for (let i = 0; i < stations - 1; i++) {
     const u = (i + 0.5) / (stations - 1)
     for (let j = 0; j < ring; j++) {
-      const theta = ((j + 0.5) / ring) * Math.PI * 2
+      // Centre of the quad in angle space. Once the ring is warped this is no
+      // longer the midpoint of the index range, so average the four corners.
+      const theta = (angles[i][j] + angles[i][j + 1] + angles[i + 1][j] + angles[i + 1][j + 1]) * 0.25
       const bucket = buckets[surfaceAtParam(u, theta)]
       const a = grid[i][j]
       const b = grid[i + 1][j]
