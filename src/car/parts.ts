@@ -126,6 +126,50 @@ function trimLoop(
   return new THREE.TubeGeometry(curve, samples * 2 + 8, radius, 6, true)
 }
 
+/**
+ * A lip around each wheel arch — the highest-yield edge on a car body. Without
+ * one the tyre dissolves into the dark underbody and the wheels read as
+ * undersized even when the package is right (this car is 6.6 wheel diameters
+ * long, which is nearly exactly a real mid-engined hypercar).
+ *
+ * The arch is already carved onto a circle at each axle, so the lip only has to
+ * find where that circle meets the flank: walk the section at the arch height
+ * and take the outermost point.
+ */
+export function buildArchLips() {
+  const parts: THREE.BufferGeometry[] = []
+  const R = CAR.archRadius
+  const STEPS = 36
+  const SCAN = 56
+
+  for (const ax of [CAR.frontAxle, CAR.rearAxle]) {
+    for (const side of [1, -1]) {
+      const pts: THREE.Vector3[] = []
+      for (let i = 0; i <= STEPS; i++) {
+        const phi = (i / STEPS) * Math.PI
+        const x = ax + R * Math.cos(phi)
+        const archY = CAR.wheelRadius + Math.sin(phi) * R * 0.92
+        const u = Math.min(1, Math.max(0, x / CAR.length + 0.5))
+
+        let best: { y: number; z: number } | null = null
+        let near: { d: number; y: number; z: number } | null = null
+        for (let k = 0; k <= SCAN; k++) {
+          const th = -1.5 + (k / SCAN) * 2.8
+          const p = bodyPoint(u, th)
+          const d = Math.abs(p.y - archY)
+          if (!near || d < near.d) near = { d, y: p.y, z: p.z }
+          if (d < 0.014 && (!best || Math.abs(p.z) > Math.abs(best.z))) best = { y: p.y, z: p.z }
+        }
+        const pick = best ?? near!
+        pts.push(new THREE.Vector3(x, pick.y, side * Math.abs(pick.z) * 0.99))
+      }
+      const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.4)
+      parts.push(new THREE.TubeGeometry(curve, STEPS * 3, 0.013, 6, false))
+    }
+  }
+  return merge(parts)
+}
+
 export function buildCanopyTrim() {
   return trimLoop(0.409, 0.792, () => Math.PI / 2, canopySpan, 0.011)
 }

@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { buildBodyGeometry, CAR } from './body'
 import { buildTire, buildRim, buildBrake, buildCaliper } from './wheel'
-import { buildTailLight, buildHeadLights, buildDucktail, buildMirrors, buildSplitter, buildDiffuser, buildCanopyTrim, buildIntakeTrim, AXLES } from './parts'
+import { buildTailLight, buildHeadLights, buildDucktail, buildMirrors, buildSplitter, buildDiffuser, buildCanopyTrim, buildIntakeTrim, buildArchLips, AXLES } from './parts'
 import { useStore, peek, type ViewMode } from '../state'
 
 const FINISH = {
@@ -86,6 +86,7 @@ export function Car(props: ComponentProps<'group'>) {
   const diffuser = useMemo(() => buildDiffuser(), [])
   const canopyTrim = useMemo(() => buildCanopyTrim(), [])
   const intakeTrim = useMemo(() => buildIntakeTrim(), [])
+  const archLips = useMemo(() => buildArchLips(), [])
 
   const f = FINISH[paint.finish]
   const lightRef = useRef<THREE.Group>(null!)
@@ -149,6 +150,22 @@ export function Car(props: ComponentProps<'group'>) {
       </mesh>
       <mesh geometry={mirrors} castShadow={!study}>
         {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial color="#0c0d10" metalness={0.5} roughness={0.35} clearcoat={0.8} />}
+      </mesh>
+      {/* Arch lips take the body colour: a painted edge catching light reads as
+          the rim of a fender, where a dark one would read as a bolt-on flare. */}
+      <mesh geometry={archLips} castShadow={!study}>
+        {study ? (
+          <StudyMaterial view={view} />
+        ) : (
+          <meshPhysicalMaterial
+            color={paint.color}
+            metalness={f.metalness}
+            roughness={f.roughness}
+            clearcoat={f.clearcoat}
+            clearcoatRoughness={f.clearcoatRoughness}
+            envMapIntensity={1.35}
+          />
+        )}
       </mesh>
       {!study && (
         <>
