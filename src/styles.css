@@ -2,6 +2,7 @@
 :root {
   --bone: #f4f1ea;
   --muted: #9298a2;
+  --copy: #b7bec7;
   --dim: #5d626b;
   --accent: #ff4d1c;
   --line: rgba(244, 241, 234, 0.14);
@@ -98,20 +99,35 @@ body {
   position: relative;
 }
 
-/* Scrim: the car passes behind the copy, so give the type something to sit on. */
+/* Scrim: the car passes behind the copy, so give the type something to sit on.
+   The gradient has to still be dark where the text *starts*, not only at the
+   edge of the viewport — the copy column is inset, so a band that fades by then
+   leaves the first half of every line sitting on bare bodywork. */
 .chapter::before {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
-  width: min(56%, 46rem);
-  background: linear-gradient(90deg, rgba(5, 6, 10, 0.9) 0%, rgba(5, 6, 10, 0.66) 46%, transparent 100%);
+  width: min(74%, 62rem);
+  background: linear-gradient(
+    90deg,
+    rgba(5, 6, 10, 0.94) 0%,
+    rgba(5, 6, 10, 0.9) 55%,
+    rgba(5, 6, 10, 0.62) 78%,
+    transparent 100%
+  );
   opacity: 0;
   transition: opacity 0.8s ease;
   pointer-events: none;
 }
 .chapter--right::before {
   inset: 0 0 0 auto;
-  background: linear-gradient(270deg, rgba(5, 6, 10, 0.9) 0%, rgba(5, 6, 10, 0.66) 46%, transparent 100%);
+  background: linear-gradient(
+    270deg,
+    rgba(5, 6, 10, 0.94) 0%,
+    rgba(5, 6, 10, 0.9) 55%,
+    rgba(5, 6, 10, 0.62) 78%,
+    transparent 100%
+  );
 }
 .chapter.is-active::before { opacity: 1; }
 .copy {
@@ -152,7 +168,7 @@ body {
 .copy p {
   font-size: clamp(0.94rem, 1.15vw, 1.05rem);
   line-height: 1.62;
-  color: var(--muted);
+  color: var(--copy);
   margin: 0;
   max-width: 24rem;
 }
