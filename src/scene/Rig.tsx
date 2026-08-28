@@ -26,6 +26,12 @@ export const SHOTS: Shot[] = [
 
 const smootherstep = (t: number) => t * t * t * (t * (t * 6 - 15) + 10)
 
+// Half-extents of the car, plus a little air so it never touches the edge.
+const HALF_LENGTH = 2.42
+const HALF_WIDTH = 1.12
+// Wide enough to also swallow the idle drift, which is +/- 0.22 in world x.
+const EDGE_MARGIN = 0.58
+
 /**
  * The page is one section per chapter plus the outro, so chapter i is centred
  * in the viewport at progress i / (sections - 1) — not i / (chapters - 1).
@@ -76,21 +82,36 @@ export function Rig() {
     nextPos.fromArray(a.pos).lerp(scratch.fromArray(b.pos), t)
     nextTarget.fromArray(a.target).lerp(scratch.fromArray(b.target), t)
 
-    // Portrait viewports see far less width for the same vertical fov, so
-    // dolly back to fit the car rather than widening the lens into a fisheye.
     const aspect = state.size.width / Math.max(1, state.size.height)
     const portrait = aspect < 1.05
-    const fit = THREE.MathUtils.clamp(1.35 / aspect, 1, 1.8)
-    nextPos.sub(nextTarget).multiplyScalar(fit).add(nextTarget)
+    const fov = THREE.MathUtils.lerp(a.fov, b.fov, t)
 
     // Slide the whole frame sideways so the car clears the chapter's copy.
     // On mobile the copy sits above the car instead, so the frame drops
     // rather than slides.
     const offset = THREE.MathUtils.lerp(a.offset, b.offset, t) * (portrait ? 0.2 : 1)
     forward.subVectors(nextTarget, nextPos).normalize()
-    right.crossVectors(forward, UP).normalize().multiplyScalar(offset)
-    nextPos.add(right)
-    nextTarget.add(right)
+    right.crossVectors(forward, UP).normalize()
+
+    /**
+     * Fit the shot rather than trusting it. How much width the car eats depends
+     * on the angle it is seen from, and the frame then slides sideways to clear
+     * the copy — so a shot that composes at one aspect ratio walks off the edge
+     * at another. Project the car's extent onto the camera's right vector, add
+     * the slide, and solve for the distance where both still land inside the
+     * frustum. Never dolly closer than the shot asked for.
+     */
+    const reach =
+      Math.abs(right.x) * HALF_LENGTH + Math.abs(right.z) * HALF_WIDTH + EDGE_MARGIN
+    const halfSpan = Math.tan(THREE.MathUtils.degToRad(fov) * 0.5) * aspect
+    const need = (reach + Math.abs(offset)) / Math.max(0.05, halfSpan)
+    const dist = nextPos.distanceTo(nextTarget)
+    const fit = Math.min(3, Math.max(1, need / Math.max(0.001, dist)))
+    nextPos.sub(nextTarget).multiplyScalar(fit).add(nextTarget)
+
+    scratch.copy(right).multiplyScalar(offset)
+    nextPos.add(scratch)
+    nextTarget.add(scratch)
     if (portrait) {
       nextPos.y += 0.78
       nextTarget.y += 0.78
@@ -108,7 +129,6 @@ export function Rig() {
     target.current.lerp(nextTarget, 1 - Math.pow(0.002, dt))
     camera.lookAt(target.current)
 
-    const fov = THREE.MathUtils.lerp(a.fov, b.fov, t)
     if (Math.abs(camera.fov - fov) > 0.01) {
       camera.fov = THREE.MathUtils.damp(camera.fov, fov, 2.5, dt)
       camera.updateProjectionMatrix()
