@@ -7,6 +7,18 @@ import { buildTailLight, buildHeadLights, buildDucktail, buildMirrors, buildSpli
 import { buildProfileCurves, buildSectionRings, buildGroundRule } from './blueprint'
 import { useStore, peek, type ViewMode } from '../state'
 
+/**
+ * The body sweeps into existence on load rather than arriving whole. The car
+ * used to be fully formed before the boot overlay had finished fading, which
+ * wasted the one moment that dramatises the premise — nothing was ever seen
+ * being generated.
+ *
+ * A clip plane travelling down the car's length is enough: no geometry is
+ * rebuilt, so the sweep costs nothing and cannot desynchronise from the shape.
+ */
+const REVEAL = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 4)
+const clip = { clippingPlanes: [REVEAL], clipShadows: true }
+
 const FINISH = {
   gloss: { metalness: 0.6, roughness: 0.21, clearcoat: 1, clearcoatRoughness: 0.06, sheen: 0.4 },
   satin: { metalness: 0.5, roughness: 0.44, clearcoat: 0.35, clearcoatRoughness: 0.4, sheen: 0.25 },
@@ -16,9 +28,9 @@ const FINISH = {
 /** Clay and blueprint passes share one material, so the shell's three groups collapse. */
 function StudyMaterial({ view, tint = '#8d939c' }: { view: ViewMode; tint?: string }) {
   if (view === 'wire') {
-    return <meshBasicMaterial color="#6ee7ff" wireframe transparent opacity={0.32} toneMapped={false} />
+    return <meshBasicMaterial {...clip} color="#6ee7ff" wireframe transparent opacity={0.32} toneMapped={false} />
   }
-  return <meshStandardMaterial color={tint} roughness={0.78} metalness={0.02} envMapIntensity={0.35} />
+  return <meshStandardMaterial {...clip} color={tint} roughness={0.78} metalness={0.02} envMapIntensity={0.35} />
 }
 
 function Wheel({ x, z, width, front }: { x: number; z: number; width: number; front: boolean }) {
@@ -46,25 +58,25 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
           {study ? (
             <StudyMaterial view={view} tint="#6b7078" />
           ) : (
-            <meshStandardMaterial color="#0a0a0c" roughness={0.82} metalness={0.05} />
+            <meshStandardMaterial {...clip} color="#0a0a0c" roughness={0.82} metalness={0.05} />
           )}
         </mesh>
         <mesh geometry={rimGeo} castShadow>
           {study ? (
             <StudyMaterial view={view} />
           ) : (
-            <meshStandardMaterial color={rim.color} metalness={rim.metal} roughness={rim.rough} envMapIntensity={1.5} />
+            <meshStandardMaterial {...clip} color={rim.color} metalness={rim.metal} roughness={rim.rough} envMapIntensity={1.5} />
           )}
         </mesh>
         {!study && (
           <mesh geometry={brake}>
-            <meshStandardMaterial color="#191a1f" metalness={0.9} roughness={0.28} />
+            <meshStandardMaterial {...clip} color="#191a1f" metalness={0.9} roughness={0.28} />
           </mesh>
         )}
       </group>
       {!study && (
         <mesh geometry={caliper} position={[0, 0, -side * width * 0.16]}>
-          <meshStandardMaterial color="#ff4d1c" emissive="#ff2d00" emissiveIntensity={0.25} roughness={0.4} />
+          <meshStandardMaterial {...clip} color="#ff4d1c" emissive="#ff2d00" emissiveIntensity={0.25} roughness={0.4} />
         </mesh>
       )}
     </group>
@@ -95,8 +107,20 @@ export function Car(props: ComponentProps<'group'>) {
   const blueprint = view === 'wire'
   const lightRef = useRef<THREE.Group>(null!)
 
+  const revealed = useRef(0)
+
   useFrame((_, dt) => {
-    const t = peek().night ? 1 : 0.12
+    const st = peek()
+    if (!st.loaded) {
+      REVEAL.constant = -2.8
+      revealed.current = 0
+    } else if (revealed.current < 1) {
+      revealed.current = Math.min(1, revealed.current + dt / 1.6)
+      const e = revealed.current
+      REVEAL.constant = THREE.MathUtils.lerp(-2.8, 4, e * e * (3 - 2 * e))
+    }
+
+    const t = st.night ? 1 : 0.12
     const g = lightRef.current
     if (!g) return
     g.userData.i = THREE.MathUtils.damp(g.userData.i ?? 0.12, t, 3, dt)
@@ -130,7 +154,7 @@ export function Car(props: ComponentProps<'group'>) {
           <StudyMaterial view={view} />
         ) : (
           <>
-            <meshPhysicalMaterial
+            <meshPhysicalMaterial {...clip}
               attach="material-0"
               color={paint.color}
               metalness={f.metalness}
@@ -144,7 +168,7 @@ export function Car(props: ComponentProps<'group'>) {
             />
             {/* Blackout canopy: opaque, so it reads by reflection alone —
                 a transparent one would look straight through the shell. */}
-            <meshPhysicalMaterial
+            <meshPhysicalMaterial {...clip}
               attach="material-1"
               color="#05070d"
               metalness={0.28}
@@ -153,7 +177,7 @@ export function Car(props: ComponentProps<'group'>) {
               clearcoatRoughness={0.02}
               envMapIntensity={2.4}
             />
-            <meshPhysicalMaterial
+            <meshPhysicalMaterial {...clip}
               attach="material-2"
               color="#0c0d10"
               metalness={0.45}
@@ -167,10 +191,10 @@ export function Car(props: ComponentProps<'group'>) {
       </mesh>
 
       <mesh geometry={ducktail} visible={!blueprint} castShadow={!study}>
-        {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial color="#0c0d10" metalness={0.45} roughness={0.4} clearcoat={0.7} />}
+        {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0c0d10" metalness={0.45} roughness={0.4} clearcoat={0.7} />}
       </mesh>
       <mesh geometry={mirrors} visible={!blueprint} castShadow={!study}>
-        {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial color="#0c0d10" metalness={0.5} roughness={0.35} clearcoat={0.8} />}
+        {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0c0d10" metalness={0.5} roughness={0.35} clearcoat={0.8} />}
       </mesh>
       {/* Arch lips take the body colour: a painted edge catching light reads as
           the rim of a fender, where a dark one would read as a bolt-on flare. */}
@@ -178,7 +202,7 @@ export function Car(props: ComponentProps<'group'>) {
         {study ? (
           <StudyMaterial view={view} />
         ) : (
-          <meshPhysicalMaterial
+          <meshPhysicalMaterial {...clip}
             color={paint.color}
             metalness={f.metalness}
             roughness={f.roughness}
@@ -191,26 +215,26 @@ export function Car(props: ComponentProps<'group'>) {
       {!study && (
         <>
           <mesh geometry={canopyTrim}>
-            <meshStandardMaterial color="#0a0b0e" metalness={0.6} roughness={0.32} />
+            <meshStandardMaterial {...clip} color="#0a0b0e" metalness={0.6} roughness={0.32} />
           </mesh>
           <mesh geometry={intakeTrim}>
-            <meshStandardMaterial color="#0a0b0e" metalness={0.6} roughness={0.32} />
+            <meshStandardMaterial {...clip} color="#0a0b0e" metalness={0.6} roughness={0.32} />
           </mesh>
         </>
       )}
       <mesh geometry={splitter} visible={!blueprint} castShadow={!study}>
-        {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
+        {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
       </mesh>
       <mesh geometry={diffuser} visible={!blueprint} castShadow={!study}>
-        {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
+        {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
       </mesh>
 
       <group ref={lightRef} visible={!study}>
         <mesh geometry={head}>
-          <meshStandardMaterial color="#ffffff" emissive="#e6efff" emissiveIntensity={0.5} toneMapped={false} />
+          <meshStandardMaterial {...clip} color="#ffffff" emissive="#e6efff" emissiveIntensity={0.5} toneMapped={false} />
         </mesh>
         <mesh geometry={tail}>
-          <meshStandardMaterial color="#ff2a12" emissive="#ff2a12" emissiveIntensity={0.5} toneMapped={false} />
+          <meshStandardMaterial {...clip} color="#ff2a12" emissive="#ff2a12" emissiveIntensity={0.5} toneMapped={false} />
         </mesh>
       </group>
 

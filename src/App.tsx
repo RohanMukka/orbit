@@ -16,7 +16,7 @@ function LoadFlag() {
   }, [progress])
   // The body is built synchronously, so flag ready on first commit too.
   useEffect(() => {
-    const t = setTimeout(() => set({ loaded: true }), 1400)
+    const t = setTimeout(() => set({ loaded: true }), 2400)
     return () => clearTimeout(t)
   }, [])
   return null
@@ -68,6 +68,8 @@ export function App() {
           gl={{ antialias: false, powerPreference: 'high-performance' }}
           camera={{ position: SHOTS[0].pos, fov: SHOTS[0].fov, near: 0.1, far: 120 }}
           onCreated={({ gl, scene }) => {
+            // The body sweeps into existence behind a clip plane on load.
+            gl.localClippingEnabled = true
             gl.toneMapping = THREE.ACESFilmicToneMapping
             gl.toneMappingExposure = 1.0
             scene.fog = new THREE.FogExp2('#05060a', 0.031)
