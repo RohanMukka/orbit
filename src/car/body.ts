@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { Profile, smoothstep } from './curve'
+import { Profile, smoothstep, type Key } from './curve'
 
 /**
  * ORBIT's body is a lofted surface: a stack of superelliptic cross-sections
@@ -20,7 +20,7 @@ export const CAR = {
 }
 
 // u = 0 at the tail, u = 1 at the nose. x = (u - 0.5) * length
-const halfWidth = new Profile([
+export const HALF_WIDTH_KEYS: Key[] = [
   [0.0, 0.9], // Kamm tail face
   [0.05, 0.99],
   [0.13, 1.02],
@@ -33,9 +33,9 @@ const halfWidth = new Profile([
   [0.88, 0.94],
   [0.95, 0.8],
   [1.0, 0.58], // blunt nose, not a spike
-])
+]
 
-const roof = new Profile([
+export const ROOF_KEYS: Key[] = [
   [0.0, 0.98], // Kamm tail
   [0.08, 1.04],
   [0.2, 1.07], // engine deck
@@ -48,14 +48,14 @@ const roof = new Profile([
   [0.88, 0.79],
   [0.95, 0.71],
   [1.0, 0.66], // nose
-])
+]
 
 /**
  * How far the centre of the upper surface drops below the fender crowns.
  * One roofline can only give a pontoon body — this is what carves a bonnet
  * that sits between two wings, and a dished engine deck behind the cabin.
  */
-const crown = new Profile([
+export const CROWN_KEYS: Key[] = [
   [0.0, 0.05],
   [0.14, 0.11], // dished engine deck
   [0.3, 0.05],
@@ -64,9 +64,9 @@ const crown = new Profile([
   [0.79, 0.12], // bonnet between the front wings
   [0.88, 0.11],
   [1.0, 0.06],
-])
+]
 
-const floor = new Profile([
+export const FLOOR_KEYS: Key[] = [
   [0.0, 0.44], // diffuser exit
   [0.05, 0.28],
   [0.14, 0.19],
@@ -74,30 +74,59 @@ const floor = new Profile([
   [0.84, 0.18],
   [0.93, 0.22],
   [1.0, 0.3], // splitter lip
-])
+]
 
 /** Height of the widest point, as a fraction of the section's height. */
-const waist = new Profile([
+export const WAIST_KEYS: Key[] = [
   [0.0, 0.54],
   [0.2, 0.6],
   [0.5, 0.63],
   [0.78, 0.6],
   [1.0, 0.5],
-])
+]
 
 // Section "boxiness": 2 = ellipse, higher = squarer shoulders.
-const topExp = new Profile([
+export const TOP_EXP_KEYS: Key[] = [
   [0.0, 3.4],
   [0.2, 3.2],
   [0.45, 3.0],
   [0.7, 2.9],
   [1.0, 3.2],
-])
-const botExp = new Profile([
+]
+export const BOT_EXP_KEYS: Key[] = [
   [0.0, 3.6],
   [0.5, 4.0],
   [1.0, 3.2],
-])
+]
+
+/**
+ * The curves, as a swappable set. They used to be module-level singletons,
+ * which is fine while the car is fixed — but design mode reshapes them live, so
+ * the loft has to be able to take a different set without reloading anything.
+ */
+export interface ProfileSet {
+  halfWidth: Profile
+  roof: Profile
+  floor: Profile
+  waist: Profile
+  crown: Profile
+  topExp: Profile
+  botExp: Profile
+}
+
+export function makeProfiles(over: Partial<Record<keyof ProfileSet, Key[]>> = {}): ProfileSet {
+  return {
+    halfWidth: new Profile(over.halfWidth ?? HALF_WIDTH_KEYS),
+    roof: new Profile(over.roof ?? ROOF_KEYS),
+    floor: new Profile(over.floor ?? FLOOR_KEYS),
+    waist: new Profile(over.waist ?? WAIST_KEYS),
+    crown: new Profile(over.crown ?? CROWN_KEYS),
+    topExp: new Profile(over.topExp ?? TOP_EXP_KEYS),
+    botExp: new Profile(over.botExp ?? BOT_EXP_KEYS),
+  }
+}
+
+export const BASE_PROFILES = makeProfiles()
 
 const TAU = Math.PI * 2
 const wrap = (a: number) => {
@@ -176,25 +205,25 @@ interface BodyPoint {
   z: number
 }
 
-function section(u: number, theta: number): BodyPoint {
+function section(u: number, theta: number, P: ProfileSet = BASE_PROFILES): BodyPoint {
   const x = (u - 0.5) * CAR.length
-  const hw = halfWidth.at(u)
-  const top = roof.at(u)
-  const bot = floor.at(u)
-  const yc = bot + (top - bot) * waist.at(u) // shoulder line
+  const hw = P.halfWidth.at(u)
+  const top = P.roof.at(u)
+  const bot = P.floor.at(u)
+  const yc = bot + (top - bot) * P.waist.at(u) // shoulder line
   const rt = top - yc
   const rb = yc - bot
 
   const c = Math.cos(theta)
   const s = Math.sin(theta)
-  const e = s > 0 ? topExp.at(u) : botExp.at(u)
+  const e = s > 0 ? P.topExp.at(u) : P.botExp.at(u)
   const p = 2 / e
 
   let z = hw * signPow(c, p)
   let y = yc + (s > 0 ? rt : rb) * signPow(s, p)
 
   // --- crown ---------------------------------------------------------------
-  const d = crown.at(u)
+  const d = P.crown.at(u)
   if (d > 0 && y > yc) {
     const lateral = Math.min(1, Math.abs(z) / Math.max(1e-4, hw))
     const upness = Math.min(1, (y - yc) / Math.max(1e-4, rt))
@@ -369,7 +398,11 @@ function ringAngles(u: number, ring: number, anchors: Anchor[]): number[] {
   return out
 }
 
-export function buildBodyGeometry(stations = BODY_RES.stations, ring = BODY_RES.ring): THREE.BufferGeometry {
+export function buildBodyGeometry(
+  stations = BODY_RES.stations,
+  ring = BODY_RES.ring,
+  P: ProfileSet = BASE_PROFILES
+): THREE.BufferGeometry {
   const cols = ring + 1 // duplicate seam column for clean normals
   const positions: number[] = []
   const angles: number[][] = []
@@ -394,7 +427,7 @@ export function buildBodyGeometry(stations = BODY_RES.stations, ring = BODY_RES.
     const rowL: number[] = new Array(cols)
     const rowR: number[] = new Array(cols)
     for (let j = 0; j < cols; j++) {
-      const p = section(u, theta[j])
+      const p = section(u, theta[j], P)
       const idx = positions.length / 3
       positions.push(p.x, p.y, p.z)
       rowL[j] = idx
@@ -411,8 +444,8 @@ export function buildBodyGeometry(stations = BODY_RES.stations, ring = BODY_RES.
 
   // End caps: a fan to the section centroid at nose and tail.
   const capCentre = (u: number) => {
-    const top = roof.at(u)
-    const bot = floor.at(u)
+    const top = P.roof.at(u)
+    const bot = P.floor.at(u)
     return [(u - 0.5) * CAR.length, (top + bot) * 0.5, 0]
   }
   const tailC = positions.length / 3
@@ -457,9 +490,60 @@ export function buildBodyGeometry(stations = BODY_RES.stations, ring = BODY_RES.
   return geo
 }
 
-/** Point on the shell in parameter space — used to trace trim lines. */
-export function bodyPoint(u: number, theta: number) {
-  return section(u, theta)
+/**
+ * Rewrites the shell's vertices for a new set of curves, in place.
+ *
+ * Topology — the index buffer, the material groups, the split columns — depends
+ * only on the feature lines and the resolution, and neither of those moves when
+ * a curve is dragged. So a drag only has to touch positions and normals, which
+ * is what makes reshaping the car interactive rather than a rebuild.
+ *
+ * Must emit vertices in exactly the order buildBodyGeometry does.
+ */
+export function updateBodyPositions(
+  geo: THREE.BufferGeometry,
+  P: ProfileSet,
+  stations = BODY_RES.stations,
+  ring = BODY_RES.ring
+) {
+  const attr = geo.getAttribute('position') as THREE.BufferAttribute
+  const out = attr.array as Float32Array
+  const cols = ring + 1
+  const anchors = featureColumns(ring)
+  const isFeature = new Set(anchors.map((a) => a.j))
+  let w = 0
+
+  for (let i = 0; i < stations; i++) {
+    const u = i / (stations - 1)
+    const theta = ringAngles(u, ring, anchors)
+    for (let j = 0; j < cols; j++) {
+      const p = section(u, theta[j], P)
+      out[w++] = p.x
+      out[w++] = p.y
+      out[w++] = p.z
+      if (isFeature.has(j)) {
+        out[w++] = p.x
+        out[w++] = p.y
+        out[w++] = p.z
+      }
+    }
+  }
+  for (const u of [0, 1]) {
+    const top = P.roof.at(u)
+    const bot = P.floor.at(u)
+    out[w++] = (u - 0.5) * CAR.length
+    out[w++] = (top + bot) * 0.5
+    out[w++] = 0
+  }
+
+  attr.needsUpdate = true
+  geo.computeVertexNormals()
+  geo.computeBoundingSphere()
 }
 
-export const profiles = { halfWidth, roof, floor, waist, crown }
+/** Point on the shell in parameter space — used to trace trim lines. */
+export function bodyPoint(u: number, theta: number, P: ProfileSet = BASE_PROFILES) {
+  return section(u, theta, P)
+}
+
+export const profiles = BASE_PROFILES
