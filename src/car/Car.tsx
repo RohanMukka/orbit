@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber'
 import { buildBodyGeometry, CAR } from './body'
 import { buildTire, buildRim, buildBrake, buildCaliper } from './wheel'
 import { buildTailLight, buildHeadLights, buildDucktail, buildMirrors, buildSplitter, buildDiffuser, buildCanopyTrim, buildIntakeTrim, buildArchLips, AXLES } from './parts'
+import { buildProfileCurves, buildSectionRings, buildGroundRule } from './blueprint'
 import { useStore, peek, type ViewMode } from '../state'
 
 const FINISH = {
@@ -77,7 +78,9 @@ export function Car(props: ComponentProps<'group'>) {
   const study = view !== 'render'
 
   const body = useMemo(() => buildBodyGeometry(), [])
-  const wireBody = useMemo(() => buildBodyGeometry(60, 40), [])
+  const curves = useMemo(() => buildProfileCurves(), [])
+  const rings = useMemo(() => buildSectionRings(), [])
+  const rule = useMemo(() => buildGroundRule(), [])
   const tail = useMemo(() => buildTailLight(), [])
   const head = useMemo(() => buildHeadLights(), [])
   const ducktail = useMemo(() => buildDucktail(), [])
@@ -89,11 +92,13 @@ export function Car(props: ComponentProps<'group'>) {
   const archLips = useMemo(() => buildArchLips(), [])
 
   const f = FINISH[paint.finish]
+  const blueprint = view === 'wire'
   const lightRef = useRef<THREE.Group>(null!)
 
   useFrame((_, dt) => {
     const t = peek().night ? 1 : 0.12
     const g = lightRef.current
+    if (!g) return
     g.userData.i = THREE.MathUtils.damp(g.userData.i ?? 0.12, t, 3, dt)
     g.traverse((o) => {
       const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined
@@ -103,8 +108,24 @@ export function Car(props: ComponentProps<'group'>) {
 
   return (
     <group {...props}>
+      {/* Blueprint: the four curves and the sections swept along them — the
+          claim the chapter is making, drawn rather than asserted. */}
+      {blueprint && (
+        <group>
+          <lineSegments geometry={rings}>
+            <lineBasicMaterial color="#2f7d95" transparent opacity={0.55} toneMapped={false} />
+          </lineSegments>
+          <lineSegments geometry={rule}>
+            <lineBasicMaterial color="#2f7d95" transparent opacity={0.32} toneMapped={false} />
+          </lineSegments>
+          <lineSegments geometry={curves}>
+            <lineBasicMaterial color="#9ff2ff" toneMapped={false} />
+          </lineSegments>
+        </group>
+      )}
+
       {/* Shell: one lofted mesh, three material groups (paint / glass / carbon) */}
-      <mesh geometry={view === 'wire' ? wireBody : body} castShadow={!study} receiveShadow={!study}>
+      <mesh geometry={body} visible={!blueprint} castShadow={!study} receiveShadow={!study}>
         {study ? (
           <StudyMaterial view={view} />
         ) : (
@@ -145,15 +166,15 @@ export function Car(props: ComponentProps<'group'>) {
         )}
       </mesh>
 
-      <mesh geometry={ducktail} castShadow={!study}>
+      <mesh geometry={ducktail} visible={!blueprint} castShadow={!study}>
         {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial color="#0c0d10" metalness={0.45} roughness={0.4} clearcoat={0.7} />}
       </mesh>
-      <mesh geometry={mirrors} castShadow={!study}>
+      <mesh geometry={mirrors} visible={!blueprint} castShadow={!study}>
         {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial color="#0c0d10" metalness={0.5} roughness={0.35} clearcoat={0.8} />}
       </mesh>
       {/* Arch lips take the body colour: a painted edge catching light reads as
           the rim of a fender, where a dark one would read as a bolt-on flare. */}
-      <mesh geometry={archLips} castShadow={!study}>
+      <mesh geometry={archLips} visible={!blueprint} castShadow={!study}>
         {study ? (
           <StudyMaterial view={view} />
         ) : (
@@ -177,10 +198,10 @@ export function Car(props: ComponentProps<'group'>) {
           </mesh>
         </>
       )}
-      <mesh geometry={splitter} castShadow={!study}>
+      <mesh geometry={splitter} visible={!blueprint} castShadow={!study}>
         {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
       </mesh>
-      <mesh geometry={diffuser} castShadow={!study}>
+      <mesh geometry={diffuser} visible={!blueprint} castShadow={!study}>
         {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
       </mesh>
 
@@ -201,9 +222,11 @@ export function Car(props: ComponentProps<'group'>) {
         </>
       )}
 
-      {AXLES.map((a) =>
-        [1, -1].map((s) => <Wheel key={`${a.x}-${s}`} x={a.x} z={s * a.track} width={a.width} front={a.front} />)
-      )}
+      <group visible={!blueprint}>
+        {AXLES.map((a) =>
+          [1, -1].map((s) => <Wheel key={`${a.x}-${s}`} x={a.x} z={s * a.track} width={a.width} front={a.front} />)
+        )}
+      </group>
     </group>
   )
 }
