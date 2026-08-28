@@ -4,7 +4,7 @@ import { AdaptiveDpr, Preload, useProgress } from '@react-three/drei'
 import * as THREE from 'three'
 import { Car } from './car/Car'
 import { Studio } from './scene/Studio'
-import { Rig, SHOTS } from './scene/Rig'
+import { Rig, SHOTS, chapterFloat } from './scene/Rig'
 import { Effects } from './scene/Effects'
 import { Overlay } from './ui/Overlay'
 import { set, peek, viewLocked } from './state'
@@ -29,7 +29,7 @@ function useScrollDriver() {
       raf = 0
       const max = document.documentElement.scrollHeight - window.innerHeight
       const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0
-      const chapter = Math.round(progress * (SHOTS.length - 1))
+      const chapter = Math.round(chapterFloat(progress))
       const prev = peek()
       if (chapter !== prev.chapter) {
         set({
@@ -69,7 +69,7 @@ export function App() {
           camera={{ position: SHOTS[0].pos, fov: SHOTS[0].fov, near: 0.1, far: 120 }}
           onCreated={({ gl, scene }) => {
             gl.toneMapping = THREE.ACESFilmicToneMapping
-            gl.toneMappingExposure = 0.98
+            gl.toneMappingExposure = 1.0
             scene.fog = new THREE.FogExp2('#05060a', 0.031)
           }}
         >
