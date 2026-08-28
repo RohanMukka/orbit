@@ -24,6 +24,25 @@ export const RIMS = [
   { id: 'bronze', name: 'Bronze', color: '#8a5a24', metal: 1, rough: 0.28 },
 ] as const
 
+/**
+ * Design mode. The visitor drags the actual silhouette curves and the body is
+ * re-lofted underneath them — the one thing on this site that a downloaded
+ * model could not do, and the reason the premise is worth claiming.
+ *
+ * Handles are indices into the key arrays in body.ts, and each is clamped to a
+ * range where every reachable car still looks deliberate. Free-form dragging
+ * would let a visitor break the hero object in about ten seconds.
+ */
+export interface Shape {
+  roof: number[]
+  width: number[]
+}
+export const ROOF_HANDLES = [2, 5, 7, 9]
+export const WIDTH_HANDLES = [3, 5, 8]
+export const ROOF_RANGE = 0.11
+export const WIDTH_RANGE = 0.1
+export const FLAT_SHAPE: Shape = { roof: [0, 0, 0, 0], width: [0, 0, 0] }
+
 export type ViewMode = 'render' | 'clay' | 'wire'
 
 export const VIEWS: { id: ViewMode; name: string }[] = [
@@ -42,6 +61,8 @@ export interface Store {
   progress: number
   loaded: boolean
   entered: boolean
+  shape: Shape
+  dragging: boolean
 }
 
 const urlView = new URLSearchParams(location.search).get('view') as ViewMode | null
@@ -58,6 +79,8 @@ let state: Store = {
   progress: 0,
   loaded: false,
   entered: false,
+  shape: FLAT_SHAPE,
+  dragging: false,
 }
 
 const listeners = new Set<() => void>()

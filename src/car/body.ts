@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { Profile, smoothstep, type Key } from './curve'
+import { ROOF_HANDLES, WIDTH_HANDLES } from '../state'
 
 /**
  * ORBIT's body is a lofted surface: a stack of superelliptic cross-sections
@@ -539,6 +540,40 @@ export function updateBodyPositions(
   attr.needsUpdate = true
   geo.computeVertexNormals()
   geo.computeBoundingSphere()
+}
+
+/**
+ * The curves as reshaped by design mode.
+ *
+ * A handle does not move its own key alone — it drags its neighbours with it,
+ * falling off over roughly a fifth of the car. Moving a single key leaves a
+ * local blister on an otherwise smooth roofline, which reads as damage rather
+ * than as design; proportional falloff is what makes every reachable shape look
+ * like somebody meant it.
+ */
+const FALLOFF = 0.2
+
+function reshape(keys: Key[], handles: number[], offsets: number[]): Key[] {
+  return keys.map(([u, v]) => {
+    let d = 0
+    handles.forEach((idx, n) => {
+      const amount = offsets[n] ?? 0
+      if (!amount) return
+      const t = Math.abs(u - keys[idx][0]) / FALLOFF
+      if (t >= 1) return
+      d += amount * smoothstep(0, 1, 1 - t)
+    })
+    return [u, v + d] as Key
+  })
+}
+
+export function shapedProfiles(shape: { roof: number[]; width: number[] }): ProfileSet {
+  return {
+    ...makeProfiles({
+      roof: reshape(ROOF_KEYS, ROOF_HANDLES, shape.roof),
+      halfWidth: reshape(HALF_WIDTH_KEYS, WIDTH_HANDLES, shape.width),
+    }),
+  }
 }
 
 /** Point on the shell in parameter space — used to trace trim lines. */

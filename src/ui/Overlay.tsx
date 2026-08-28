@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CHAPTERS } from './chapters'
 import { PAINTS, RIMS, VIEWS, set, useStore } from '../state'
+import { DesignPanel } from './Design'
 import { BODY_RES } from '../car/body'
 
 function Telemetry() {
@@ -71,6 +72,8 @@ function Configurator() {
           />
         ))}
       </div>
+
+      <DesignPanel />
 
       <div className="panel__head panel__head--sub">
         <span className="micro">Surface</span>

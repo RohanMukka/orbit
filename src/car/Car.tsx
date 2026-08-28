@@ -1,7 +1,7 @@
-import { useMemo, useRef, type ComponentProps } from 'react'
+import { useEffect, useMemo, useRef, type ComponentProps } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
-import { buildBodyGeometry, CAR } from './body'
+import { buildBodyGeometry, shapedProfiles, updateBodyPositions, CAR } from './body'
 import { buildTire, buildRim, buildBrake, buildCaliper } from './wheel'
 import { buildTailLight, buildHeadLights, buildDucktail, buildMirrors, buildSplitter, buildDiffuser, buildCanopyTrim, buildIntakeTrim, buildArchLips, AXLES } from './parts'
 import { buildProfileCurves, buildSectionRings, buildGroundRule } from './blueprint'
@@ -89,7 +89,19 @@ export function Car(props: ComponentProps<'group'>) {
   const view = useStore((s) => s.view)
   const study = view !== 'render'
 
+  const shape = useStore((s) => s.shape)
+  const dragging = useStore((s) => s.dragging)
+
   const body = useMemo(() => buildBodyGeometry(), [])
+  // A coarser copy carries the drag. Topology is identical, so the material
+  // groups still line up and only the vertex count differs.
+  const draft = useMemo(() => buildBodyGeometry(132, 76), [])
+
+  useEffect(() => {
+    const P = shapedProfiles(shape)
+    updateBodyPositions(draft, P, 132, 76)
+    if (!dragging) updateBodyPositions(body, P)
+  }, [shape, dragging, body, draft])
   const curves = useMemo(() => buildProfileCurves(), [])
   const rings = useMemo(() => buildSectionRings(), [])
   const rule = useMemo(() => buildGroundRule(), [])
@@ -149,7 +161,7 @@ export function Car(props: ComponentProps<'group'>) {
       )}
 
       {/* Shell: one lofted mesh, three material groups (paint / glass / carbon) */}
-      <mesh geometry={body} visible={!blueprint} castShadow={!study} receiveShadow={!study}>
+      <mesh geometry={dragging ? draft : body} visible={!blueprint} castShadow={!study} receiveShadow={!study}>
         {study ? (
           <StudyMaterial view={view} />
         ) : (
