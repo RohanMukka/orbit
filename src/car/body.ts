@@ -372,21 +372,41 @@ function ringAngles(u: number, ring: number, anchors: Anchor[]): number[] {
 export function buildBodyGeometry(stations = BODY_RES.stations, ring = BODY_RES.ring): THREE.BufferGeometry {
   const cols = ring + 1 // duplicate seam column for clean normals
   const positions: number[] = []
-  const grid: number[][] = []
   const angles: number[][] = []
   const anchors = featureColumns(ring)
+  const isFeature = new Set(anchors.map((a) => a.j))
+
+  /**
+   * Two index grids rather than one. On a character line the column is emitted
+   * twice at the same point: quads below it take `gridR`, quads above it take
+   * `gridL`. The two copies are then referenced by faces from one side only, so
+   * computeVertexNormals has nothing to average across and the crease survives
+   * as a real shading break. It is the trick the seam column already uses,
+   * applied along the car instead of around it.
+   */
+  const gridL: number[][] = []
+  const gridR: number[][] = []
 
   for (let i = 0; i < stations; i++) {
     const u = i / (stations - 1)
     const theta = ringAngles(u, ring, anchors)
     angles.push(theta)
-    const row: number[] = []
+    const rowL: number[] = new Array(cols)
+    const rowR: number[] = new Array(cols)
     for (let j = 0; j < cols; j++) {
       const p = section(u, theta[j])
-      row.push(positions.length / 3)
+      const idx = positions.length / 3
       positions.push(p.x, p.y, p.z)
+      rowL[j] = idx
+      if (isFeature.has(j)) {
+        rowR[j] = positions.length / 3
+        positions.push(p.x, p.y, p.z)
+      } else {
+        rowR[j] = idx
+      }
     }
-    grid.push(row)
+    gridL.push(rowL)
+    gridR.push(rowR)
   }
 
   // End caps: a fan to the section centroid at nose and tail.
@@ -409,16 +429,16 @@ export function buildBodyGeometry(stations = BODY_RES.stations, ring = BODY_RES.
       // longer the midpoint of the index range, so average the four corners.
       const theta = (angles[i][j] + angles[i][j + 1] + angles[i + 1][j] + angles[i + 1][j + 1]) * 0.25
       const bucket = buckets[surfaceAtParam(u, theta)]
-      const a = grid[i][j]
-      const b = grid[i + 1][j]
-      const c = grid[i + 1][j + 1]
-      const d = grid[i][j + 1]
+      const a = gridR[i][j]
+      const b = gridR[i + 1][j]
+      const c = gridL[i + 1][j + 1]
+      const d = gridL[i][j + 1]
       bucket.push(a, b, d, b, c, d)
     }
   }
   for (let j = 0; j < ring; j++) {
-    buckets.carbon.push(tailC, grid[0][j + 1], grid[0][j])
-    buckets.carbon.push(noseC, grid[stations - 1][j], grid[stations - 1][j + 1])
+    buckets.carbon.push(tailC, gridL[0][j + 1], gridR[0][j])
+    buckets.carbon.push(noseC, gridR[stations - 1][j], gridL[stations - 1][j + 1])
   }
 
   const order: Surface[] = ['paint', 'glass', 'carbon']
