@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { Environment, Lightformer, MeshReflectorMaterial, ContactShadows } from '@react-three/drei'
@@ -57,8 +57,28 @@ function Backdrop() {
 /** The long softbox strips that draw highlight streaks down the bodywork. */
 function StudioRig() {
   const night = useStore((s) => s.night)
+  const chapter = useStore((s) => s.chapter)
   const k = night ? 0.22 : 1 // kill the studio when the headlights come up
   const group = useRef<THREE.Group>(null!)
+
+  /**
+   * The rig only turns during the Light chapter, and damps back to rest after
+   * it. Re-rendering the cubemap outside that window is six scene renders a
+   * frame for a picture that cannot change — so hold it live while the lights
+   * move, then drop to a single capture. Switching `frames` back to 1 re-runs
+   * drei's layout effect, which takes one last render at the settled rotation.
+   */
+  const turning = chapter === 2
+  const [live, setLive] = useState(false)
+  useEffect(() => {
+    if (turning) {
+      setLive(true)
+      return
+    }
+    const t = setTimeout(() => setLive(false), 2600) // outlast the damp
+    return () => clearTimeout(t)
+  }, [turning])
+
   useFrame((state, dt) => {
     const s = peek()
     const target = s.chapter === 2 ? state.clock.elapsedTime * 0.22 : 0
@@ -66,7 +86,7 @@ function StudioRig() {
   })
 
   return (
-    <Environment resolution={256} frames={Infinity}>
+    <Environment resolution={256} frames={live ? Infinity : 1}>
       <color attach="background" args={['#04050a']} />
       <group ref={group}>
         <Lightformer form="rect" intensity={2.1 * k} position={[0, 6.6, 0]} scale={[10, 4.2, 1]} rotation={[Math.PI / 2, 0, 0]} color="#ffffff" />
@@ -88,10 +108,10 @@ function Floor() {
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
       <circleGeometry args={[26, 96]} />
       <MeshReflectorMaterial
-        resolution={1024}
+        resolution={512}
         mixBlur={1.1}
         mixStrength={22}
-        blur={[420, 120]}
+        blur={[280, 90]}
         mirror={night ? 0.75 : 0.55}
         depthScale={1.1}
         minDepthThreshold={0.35}
@@ -166,7 +186,9 @@ export function Studio() {
       <StudioRig />
       <Floor />
       <Streaks />
-      <ContactShadows position={[0, 0.002, 0]} opacity={0.85} scale={16} blur={2.4} far={4} resolution={512} color="#000000" />
+      {/* The car does not move, so the contact shadow only needs settling once.
+          drei defaults this to Infinity — a scene depth pass every frame. */}
+      <ContactShadows position={[0, 0.002, 0]} opacity={0.85} scale={16} blur={2.4} far={4} resolution={512} frames={60} color="#000000" />
       <KeyLight />
       <ambientLight intensity={0.1} />
     </>
