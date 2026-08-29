@@ -179,9 +179,25 @@ function KeyLight() {
   )
 }
 
+/**
+ * The paint chapter was the darkest screen on the site, which is the wrong way
+ * round — it is the one asking you to look at colour. Lift the exposure while
+ * it is up, and a little at night so the tail bar has some room.
+ */
+function Exposure() {
+  useFrame((state, dt) => {
+    const c = peek().chapter
+    const target = c === 3 ? 1.16 : c === 4 ? 1.06 : 1.0
+    const gl = state.gl
+    gl.toneMappingExposure = THREE.MathUtils.damp(gl.toneMappingExposure, target, 2.2, dt)
+  })
+  return null
+}
+
 export function Studio() {
   return (
     <>
+      <Exposure />
       <Backdrop />
       <StudioRig />
       <Floor />

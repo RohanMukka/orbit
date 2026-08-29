@@ -102,8 +102,12 @@ export function Rig() {
      * the slide, and solve for the distance where both still land inside the
      * frustum. Never dolly closer than the shot asked for.
      */
+    // Portrait has far less width to give away, so it gets a tighter margin —
+    // the car is small enough there already.
     const reach =
-      Math.abs(right.x) * HALF_LENGTH + Math.abs(right.z) * HALF_WIDTH + EDGE_MARGIN
+      Math.abs(right.x) * HALF_LENGTH +
+      Math.abs(right.z) * HALF_WIDTH +
+      (portrait ? EDGE_MARGIN * 0.4 : EDGE_MARGIN)
     const halfSpan = Math.tan(THREE.MathUtils.degToRad(fov) * 0.5) * aspect
     const need = (reach + Math.abs(offset)) / Math.max(0.05, halfSpan)
     const dist = nextPos.distanceTo(nextTarget)
