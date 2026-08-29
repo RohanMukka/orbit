@@ -110,7 +110,7 @@ export function DesignPanel() {
         </button>
       </div>
 
-      <span className="micro micro--dim design__hint">Drag a point — the body is re-lofted live</span>
+      <span className="micro micro--dim design__hint">Drag a point — re-lofted live</span>
 
       <svg
         ref={sideRef}

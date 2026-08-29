@@ -20,14 +20,15 @@ export const CHAPTERS: Chapter[] = [
     label: 'Form',
     title: 'Four curves make a car.',
     body:
-      'A half-width curve, a roofline, a floor, and a blend that decides how square each cross-section is. Sweep 264 superelliptic sections along those curves and you have a body. The wheel arches are not modelled — they are subtracted, analytically, by pushing the lower shell onto a circle at each axle.',
+      'A half-width curve, a roofline, a floor, and a blend that decides how square each cross-section is. Sweep 264 superelliptic sections along those curves and you have a body — and nothing here is a texture, so the shape is read entirely through reflection, breaking exactly where the surface does.',
   },
   {
     index: '03',
-    label: 'Light',
-    title: 'Light is the only draughtsman.',
+    label: 'Design',
+    title: 'Now move one.',
     body:
-      'Nothing here is a texture. The car is read entirely through reflection: six softboxes drawn in code, streaking down the flanks and breaking exactly where the surface does. Watch the highlight travel — that is the shape telling you about itself.',
+      'These are the curves themselves, not a picture of them. Drag any point and the body is re-lofted under your cursor — 40,128 vertices solved again, every frame you hold it. This is the part that cannot be faked with a downloaded model: there is nothing to morph between, only maths to run again.',
+    note: 'Drag a point',
   },
   {
     index: '04',
