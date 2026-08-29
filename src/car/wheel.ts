@@ -13,18 +13,36 @@ function lathe(points: THREE.Vector2[], segments = 64) {
   return g
 }
 
+/**
+ * The profile already had a bead and a low-profile sidewall, but no relief
+ * across the tread — so at any normal camera distance it read as a plain black
+ * ring and dragged the wheels down with it. Circumferential grooves cost four
+ * lathe points each and give the contact patch something to catch light on.
+ */
 export function buildTire(width: number, radius = CAR.wheelRadius) {
   const w = width / 2
   const bead = radius * 0.74 // low-profile sidewall
+  const groove = (z: number) => [
+    new THREE.Vector2(radius, z - 0.055 * w),
+    new THREE.Vector2(radius * 0.963, z - 0.03 * w),
+    new THREE.Vector2(radius * 0.963, z + 0.03 * w),
+    new THREE.Vector2(radius, z + 0.055 * w),
+  ]
   return lathe(
     [
       new THREE.Vector2(bead, -w),
-      new THREE.Vector2(radius * 0.9, -w * 1.01),
-      new THREE.Vector2(radius * 0.97, -w * 0.93),
-      new THREE.Vector2(radius, -w * 0.62),
-      new THREE.Vector2(radius, w * 0.62),
-      new THREE.Vector2(radius * 0.97, w * 0.93),
-      new THREE.Vector2(radius * 0.9, w * 1.01),
+      new THREE.Vector2(radius * 0.86, -w * 1.02), // sidewall bulge
+      new THREE.Vector2(radius * 0.93, -w * 0.99),
+      new THREE.Vector2(radius * 0.975, -w * 0.92), // shoulder
+      new THREE.Vector2(radius, -w * 0.7),
+      ...groove(-w * 0.42),
+      ...groove(-w * 0.14),
+      ...groove(w * 0.14),
+      ...groove(w * 0.42),
+      new THREE.Vector2(radius, w * 0.7),
+      new THREE.Vector2(radius * 0.975, w * 0.92),
+      new THREE.Vector2(radius * 0.93, w * 0.99),
+      new THREE.Vector2(radius * 0.86, w * 1.02),
       new THREE.Vector2(bead, w),
     ],
     72

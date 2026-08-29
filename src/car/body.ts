@@ -316,7 +316,7 @@ export function intakeAperture(u: number): number {
 }
 
 function surfaceAtParam(u: number, theta: number): Surface {
-  if (u < 0.035 || u > 0.972) return 'carbon' // nose and tail fascias
+  if (u < 0.035 || u > 0.986) return 'carbon' // nose and tail fascias
 
   // Canopy: a band centred on the top of the section, tapering to a point at
   // the windscreen header and the base of the rear glass.
@@ -444,10 +444,13 @@ export function buildBodyGeometry(
   }
 
   // End caps: a fan to the section centroid at nose and tail.
+  // Dome the caps slightly. A flat fan at the nose catches almost no light and
+  // reads as an open pipe rather than the end of a car.
   const capCentre = (u: number) => {
     const top = P.roof.at(u)
     const bot = P.floor.at(u)
-    return [(u - 0.5) * CAR.length, (top + bot) * 0.5, 0]
+    const push = (u < 0.5 ? -1 : 1) * 0.045
+    return [(u - 0.5) * CAR.length + push, (top + bot) * 0.5, 0]
   }
   const tailC = positions.length / 3
   positions.push(...capCentre(0))

@@ -15,23 +15,36 @@ export function buildTailLight() {
   return tube(pts, 0.022, 10)
 }
 
+/** The path each headlight blade follows, from the fender top into the nose. */
+function headLightPath(s: number) {
+  const pts: THREE.Vector3[] = []
+  for (let i = 0; i <= 20; i++) {
+    const t = i / 20
+    pts.push(
+      new THREE.Vector3(1.68 + t * 0.56, 0.74 - t * t * 0.16, s * (0.83 - t * 0.4 - t * t * 0.12))
+    )
+  }
+  return pts
+}
+
 /** Two hooked blades that wrap from the fender tops into the nose. */
 export function buildHeadLights() {
-  const side = (s: number) => {
-    const pts: THREE.Vector3[] = []
-    for (let i = 0; i <= 20; i++) {
-      const t = i / 20
-      pts.push(
-        new THREE.Vector3(
-          1.68 + t * 0.56,
-          0.74 - t * t * 0.16,
-          s * (0.83 - t * 0.4 - t * t * 0.12)
-        )
-      )
-    }
-    return tube(pts, 0.019, 10)
-  }
-  return merge([side(1), side(-1)])
+  return merge([tube(headLightPath(1), 0.019, 10), tube(headLightPath(-1), 0.019, 10)])
+}
+
+/**
+ * A dark housing sunk under each blade. Without it the emissive tube sits on
+ * the surface like a strip of tape — a real lamp has something behind the lens,
+ * and the depth is most of what sells it.
+ */
+export function buildHeadLightHousings() {
+  const cup = (s: number) =>
+    tube(
+      headLightPath(s).map((p) => new THREE.Vector3(p.x - 0.012, p.y - 0.006, p.z * 0.985)),
+      0.032,
+      12
+    )
+  return merge([cup(1), cup(-1)])
 }
 
 /**

@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { buildBodyGeometry, shapedProfiles, updateBodyPositions, CAR } from './body'
 import { buildTire, buildRim, buildBrake, buildCaliper } from './wheel'
-import { buildTailLight, buildHeadLights, buildDucktail, buildMirrors, buildSplitter, buildDiffuser, buildCanopyTrim, buildIntakeTrim, buildArchLips, AXLES } from './parts'
+import { buildTailLight, buildHeadLights, buildDucktail, buildMirrors, buildSplitter, buildDiffuser, buildCanopyTrim, buildIntakeTrim, buildArchLips, buildHeadLightHousings, AXLES } from './parts'
 import { buildProfileCurves, buildSectionRings, buildGroundRule } from './blueprint'
 import { useStore, peek, type ViewMode } from '../state'
 
@@ -107,6 +107,7 @@ export function Car(props: ComponentProps<'group'>) {
   const rule = useMemo(() => buildGroundRule(), [])
   const tail = useMemo(() => buildTailLight(), [])
   const head = useMemo(() => buildHeadLights(), [])
+  const headCups = useMemo(() => buildHeadLightHousings(), [])
   const ducktail = useMemo(() => buildDucktail(), [])
   const mirrors = useMemo(() => buildMirrors(), [])
   const splitter = useMemo(() => buildSplitter(), [])
@@ -239,6 +240,11 @@ export function Car(props: ComponentProps<'group'>) {
       </mesh>
       <mesh geometry={diffuser} visible={!blueprint} castShadow={!study}>
         {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
+      </mesh>
+
+      {/* Housings sit outside the emissive group so they stay dark. */}
+      <mesh geometry={headCups} visible={!study && !blueprint}>
+        <meshStandardMaterial {...clip} color="#050609" metalness={0.5} roughness={0.5} />
       </mesh>
 
       <group ref={lightRef} visible={!study}>
