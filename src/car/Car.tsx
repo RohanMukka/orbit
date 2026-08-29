@@ -117,6 +117,48 @@ export function Car(props: ComponentProps<'group'>) {
   const archLips = useMemo(() => buildArchLips(), [])
 
   const f = FINISH[paint.finish]
+
+  /**
+   * Paint is built by hand rather than declared, so the shader can be patched.
+   *
+   * Panel gaps are the cheapest large gain left on the body: without them the
+   * shell reads as one moulded lump. They are drawn from the loft's own (u,
+   * theta) parameters rather than a texture — which keeps the site's zero-asset
+   * claim intact and is how production real-time car renders do it anyway.
+   */
+  const paintMat = useMemo(() => {
+    const m = new THREE.MeshPhysicalMaterial({ sheenRoughness: 0.5, envMapIntensity: 1.35 })
+    m.clippingPlanes = [REVEAL]
+    m.clipShadows = true
+    // vUv only exists if something asks for it; nothing here samples a texture.
+    m.defines = { ...(m.defines ?? {}), USE_UV: '' }
+    m.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <color_fragment>',
+        `#include <color_fragment>
+        {
+          float gap = 0.0;
+          // engine cover, then the cowl ahead of the windscreen
+          gap = max(gap, 1.0 - smoothstep(0.0, 0.0032, abs(vUv.x - 0.295)));
+          gap = max(gap, 1.0 - smoothstep(0.0, 0.0032, abs(vUv.x - 0.828)));
+          // only across the upper surface, dying before it reaches the shoulders
+          float band = smoothstep(0.03, 0.10, vUv.y) * (1.0 - smoothstep(0.40, 0.47, vUv.y));
+          diffuseColor.rgb *= 1.0 - 0.82 * gap * band;
+        }`
+      )
+    }
+    return m
+  }, [])
+
+  useEffect(() => {
+    paintMat.color.set(paint.color)
+    paintMat.sheenColor.set(paint.flake)
+    paintMat.metalness = f.metalness
+    paintMat.roughness = f.roughness
+    paintMat.clearcoat = f.clearcoat
+    paintMat.clearcoatRoughness = f.clearcoatRoughness
+    paintMat.sheen = f.sheen
+  }, [paintMat, paint, f])
   const blueprint = view === 'wire'
   const lightRef = useRef<THREE.Group>(null!)
 
@@ -167,18 +209,7 @@ export function Car(props: ComponentProps<'group'>) {
           <StudyMaterial view={view} />
         ) : (
           <>
-            <meshPhysicalMaterial {...clip}
-              attach="material-0"
-              color={paint.color}
-              metalness={f.metalness}
-              roughness={f.roughness}
-              clearcoat={f.clearcoat}
-              clearcoatRoughness={f.clearcoatRoughness}
-              sheen={f.sheen}
-              sheenColor={paint.flake}
-              sheenRoughness={0.5}
-              envMapIntensity={1.35}
-            />
+            <primitive object={paintMat} attach="material-0" />
             {/* Blackout canopy: opaque, so it reads by reflection alone —
                 a transparent one would look straight through the shell. */}
             <meshPhysicalMaterial {...clip}

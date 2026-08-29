@@ -406,6 +406,9 @@ export function buildBodyGeometry(
 ): THREE.BufferGeometry {
   const cols = ring + 1 // duplicate seam column for clean normals
   const positions: number[] = []
+  // (u, theta) travels with the vertex so the shader can draw panel gaps from
+  // the loft's own parameters instead of a texture.
+  const uvs: number[] = []
   const angles: number[][] = []
   const anchors = featureColumns(ring)
   const isFeature = new Set(anchors.map((a) => a.j))
@@ -431,10 +434,12 @@ export function buildBodyGeometry(
       const p = section(u, theta[j], P)
       const idx = positions.length / 3
       positions.push(p.x, p.y, p.z)
+      uvs.push(u, theta[j] / TAU)
       rowL[j] = idx
       if (isFeature.has(j)) {
         rowR[j] = positions.length / 3
         positions.push(p.x, p.y, p.z)
+        uvs.push(u, theta[j] / TAU)
       } else {
         rowR[j] = idx
       }
@@ -454,8 +459,10 @@ export function buildBodyGeometry(
   }
   const tailC = positions.length / 3
   positions.push(...capCentre(0))
+  uvs.push(0, 0)
   const noseC = positions.length / 3
   positions.push(...capCentre(1))
+  uvs.push(1, 0)
 
   const buckets: Record<Surface, number[]> = { paint: [], glass: [], carbon: [] }
 
@@ -488,6 +495,7 @@ export function buildBodyGeometry(
   })
 
   geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2))
   geo.setIndex(indices)
   geo.computeVertexNormals()
   geo.computeBoundingSphere()
