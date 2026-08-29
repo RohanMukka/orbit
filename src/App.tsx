@@ -8,6 +8,7 @@ import { Rig, SHOTS, chapterFloat } from './scene/Rig'
 import { Effects } from './scene/Effects'
 import { Overlay } from './ui/Overlay'
 import { set, peek, viewLocked } from './state'
+import * as audio from './audio'
 
 function LoadFlag() {
   const { progress } = useProgress()
@@ -32,6 +33,7 @@ function useScrollDriver() {
       const chapter = Math.round(chapterFloat(progress))
       const prev = peek()
       if (chapter !== prev.chapter) {
+        audio.setNight(chapter === SHOTS.length - 1)
         set({
           chapter,
           night: chapter === SHOTS.length - 1,
@@ -41,6 +43,7 @@ function useScrollDriver() {
         })
       }
       set({ progress, entered: progress > 0.01 || prev.entered })
+      audio.setScroll(progress)
     }
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(read)

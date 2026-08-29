@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { CHAPTERS } from './chapters'
 import { PAINTS, RIMS, VIEWS, set, useStore } from '../state'
 import { DesignPanel } from './Design'
+import * as audio from '../audio'
 import { BODY_RES } from '../car/body'
 
 function Telemetry() {
@@ -66,7 +67,10 @@ function Configurator() {
             key={p.id}
             className={`swatch ${p.id === paint.id ? 'is-on' : ''}`}
             style={{ ['--c' as string]: p.color, ['--f' as string]: p.flake }}
-            onClick={() => set({ paint: p })}
+            onClick={() => {
+              set({ paint: p })
+              audio.blip()
+            }}
             aria-label={p.name}
             title={`${p.name} · ${p.code}`}
           />
@@ -80,7 +84,10 @@ function Configurator() {
       </div>
       <div className="chips">
         {VIEWS.map((v) => (
-          <button key={v.id} className={`chip ${v.id === view ? 'is-on' : ''}`} onClick={() => set({ view: v.id })}>
+          <button key={v.id} className={`chip ${v.id === view ? 'is-on' : ''}`} onClick={() => {
+              set({ view: v.id })
+              audio.sweep()
+            }}>
             {v.name}
           </button>
         ))}
@@ -91,7 +98,10 @@ function Configurator() {
       </div>
       <div className="chips">
         {RIMS.map((r) => (
-          <button key={r.id} className={`chip ${r.id === rim.id ? 'is-on' : ''}`} onClick={() => set({ rim: r })}>
+          <button key={r.id} className={`chip ${r.id === rim.id ? 'is-on' : ''}`} onClick={() => {
+              set({ rim: r })
+              audio.blip()
+            }}>
             {r.name}
           </button>
         ))}
@@ -106,6 +116,32 @@ function Configurator() {
         </button>
       </div>
     </div>
+  )
+}
+
+function SoundToggle() {
+  const [on, setOn] = useState(false)
+  return (
+    <button
+      className={`sound ${on ? 'sound--on' : ''}`}
+      aria-pressed={on}
+      onClick={() => {
+        if (on) {
+          audio.disable()
+          setOn(false)
+        } else {
+          void audio.enable()
+          setOn(true)
+        }
+      }}
+    >
+      <span className="sound__bars" aria-hidden>
+        <i />
+        <i />
+        <i />
+      </span>
+      <span className="micro">{on ? 'Sound on' : 'Sound off'}</span>
+    </button>
   )
 }
 
@@ -149,6 +185,7 @@ export function Overlay() {
             {CHAPTERS[chapter].index} <em>/ 05</em>
           </span>
           <span className="micro micro--dim">{CHAPTERS[chapter].label}</span>
+          <SoundToggle />
         </div>
       </div>
 
