@@ -24,11 +24,16 @@ function DebrisField() {
     return arr
   }, [count])
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     if (!launching || !meshRef.current) return
     
     data.forEach((d, i) => {
       d.x -= dt * 150.0
+      
+      d.z -= state.pointer.x * dt * 50.0
+      if (d.z > 20) d.z -= 40
+      if (d.z < -20) d.z += 40
+      
       if (d.x < -20) {
         d.x = 150
         d.y = -15 + Math.random() * 30
@@ -93,7 +98,7 @@ export function Hyperspace() {
 
   const ltRef = useRef(0)
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     if (!launching) {
       ltRef.current = 0
       return
@@ -109,6 +114,10 @@ export function Hyperspace() {
     if (!meshRef.current) return
     
     data.forEach((d, i) => {
+      d.z -= state.pointer.x * dt * 50.0
+      if (d.z > 20) d.z -= 40
+      if (d.z < -20) d.z += 40
+
       // Wrap lines relative to car's drive position
       let offset = (d.x - drive) % 800
       if (offset < -100) offset += 800
