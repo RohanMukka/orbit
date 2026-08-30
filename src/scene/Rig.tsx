@@ -86,12 +86,12 @@ export function Rig() {
 
     const aspect = state.size.width / Math.max(1, state.size.height)
     const portrait = aspect < 1.05
-    const fov = THREE.MathUtils.lerp(a.fov, b.fov, t)
+    let fov = THREE.MathUtils.lerp(a.fov, b.fov, t)
 
     // Slide the whole frame sideways so the car clears the chapter's copy.
     // On mobile the copy sits above the car instead, so the frame drops
     // rather than slides.
-    const offset = THREE.MathUtils.lerp(a.offset, b.offset, t) * (portrait ? 0.2 : 1)
+    let offset = THREE.MathUtils.lerp(a.offset, b.offset, t) * (portrait ? 0.2 : 1)
     forward.subVectors(nextTarget, nextPos).normalize()
     right.crossVectors(forward, UP).normalize()
 
@@ -105,6 +105,17 @@ export function Rig() {
      */
     // Portrait has far less width to give away, so it gets a tighter margin —
     // the car is small enough there already.
+    if (s.exploded) {
+      fov = 42
+      nextPos.set(-4.5, 2.4, 5.5)
+      nextTarget.set(0, 0.6, 0)
+      offset = 0
+    }
+
+    forward.subVectors(nextTarget, nextPos).normalize()
+    right.crossVectors(forward, UP).normalize()
+
+    // Pulling away for the full car.
     const reach =
       Math.abs(right.x) * HALF_LENGTH +
       Math.abs(right.z) * HALF_WIDTH +

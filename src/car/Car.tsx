@@ -234,6 +234,7 @@ export function Car(props: ComponentProps<'group'>) {
   const playedDrop = useRef(false)
 
   const revealed = useRef(0)
+  const explodedLerp = useRef(0)
 
   useFrame((_, dt) => {
     const st = peek()
@@ -274,6 +275,30 @@ export function Car(props: ComponentProps<'group'>) {
           }
         })
       }
+    }
+
+    // Exploded view animation
+    const targetExploded = st.exploded ? 1 : 0
+    explodedLerp.current = THREE.MathUtils.damp(explodedLerp.current, targetExploded, 3, dt)
+    const ex = explodedLerp.current
+
+    if (blueprintRef.current) {
+      blueprintRef.current.children[0].scale.setScalar(1 + ex * 0.2) // rings
+      blueprintRef.current.children[2].position.y = ex * 0.8 // curves
+      
+      if (ex > 0.01 && st.view !== 'wire' && revealed.current >= 3.0) {
+        blueprintRef.current.visible = true
+        ;((blueprintRef.current.children[0] as THREE.LineSegments).material as THREE.Material).opacity = ex * 0.55
+        ;((blueprintRef.current.children[1] as THREE.LineSegments).material as THREE.Material).opacity = ex * 0.32
+        ;((blueprintRef.current.children[2] as THREE.LineSegments).material as THREE.Material).opacity = ex
+      } else if (ex <= 0.01 && st.view !== 'wire' && revealed.current >= 3.0) {
+        blueprintRef.current.visible = false
+      }
+    }
+
+    if (shellRef.current) {
+      shellRef.current.position.y = ex * -0.6
+      shellRef.current.scale.setScalar(1 - ex * 0.1)
     }
 
     const t = st.night ? 1 : 0.12

@@ -52,6 +52,7 @@ function Configurator() {
   const spin = useStore((s) => s.spin)
   const chapter = useStore((s) => s.chapter)
   const view = useStore((s) => s.view)
+  const exploded = useStore((s) => s.exploded)
   const open = chapter >= 1
 
   return (
@@ -113,6 +114,12 @@ function Configurator() {
         </button>
         <button className={`chip ${spin ? 'is-on' : ''}`} onClick={() => set({ spin: !spin })}>
           {spin ? 'Wheels turning' : 'Wheels still'}
+        </button>
+        <button className={`chip ${exploded ? 'is-on' : ''}`} onClick={() => {
+          set({ exploded: !exploded })
+          audio.sweep()
+        }}>
+          {exploded ? 'Reconstruct' : 'Deconstruct'}
         </button>
       </div>
     </div>
