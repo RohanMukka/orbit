@@ -3,7 +3,7 @@ import { BlendFunction } from 'postprocessing'
 import * as THREE from 'three'
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useStore } from '../state'
+import { useStore, peek } from '../state'
 
 export function Effects() {
   const ca = useMemo(() => new THREE.Vector2(0.0006, 0.0004), [])
@@ -14,15 +14,18 @@ export function Effects() {
   const glitch = useStore(s => s.glitch)
 
   useFrame((state, dt) => {
+    const s = peek()
     const dampFactor = glitch ? 15 : 4
     if (caRef.current) {
-      const targetX = glitch ? 0.03 : launching ? 0.015 : 0.0006
-      const targetY = glitch ? 0.02 : launching ? 0.01 : 0.0004
+      const velMod = Math.abs(s.scrollVelocity || 0) * 0.0005
+      const targetX = (glitch ? 0.03 : launching ? 0.015 : 0.0006) + velMod
+      const targetY = (glitch ? 0.02 : launching ? 0.01 : 0.0004) + velMod
       caRef.current.offset.x = THREE.MathUtils.damp(caRef.current.offset.x, targetX, dampFactor, dt)
       caRef.current.offset.y = THREE.MathUtils.damp(caRef.current.offset.y, targetY, dampFactor, dt)
     }
     if (noiseRef.current) {
-      const targetOpacity = glitch ? 0.6 : launching ? 0.25 : 0.035
+      const velModNoise = Math.abs(s.scrollVelocity || 0) * 0.01
+      const targetOpacity = (glitch ? 0.6 : launching ? 0.25 : 0.035) + velModNoise
       noiseRef.current.blendMode.opacity.value = THREE.MathUtils.damp(noiseRef.current.blendMode.opacity.value, targetOpacity, dampFactor, dt)
     }
     if (vignetteRef.current) {
