@@ -224,9 +224,10 @@ export function Studio() {
       <StudioRig />
       <Floor />
       <Streaks />
-      {/* The car does not move, so the contact shadow only needs settling once.
-          drei defaults this to Infinity — a scene depth pass every frame. */}
-      <ContactShadows position={[0, 0.002, 0]} opacity={0.85} scale={16} blur={2.4} far={4} resolution={512} frames={60} color="#000000" />
+      {/* Soft, broad global illumination cast shadow */}
+      <ContactShadows position={[0, 0.002, 0]} opacity={0.65} scale={16} blur={4.5} far={4} resolution={1024} frames={100} color="#000000" />
+      {/* Tight, dark ambient occlusion core shadow right under the tires/belly */}
+      <ContactShadows position={[0, 0.004, 0]} opacity={0.95} scale={8} blur={1.2} far={1} resolution={1024} frames={100} color="#000205" />
       <KeyLight />
       <ambientLight intensity={0.1} />
     </>

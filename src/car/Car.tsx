@@ -20,9 +20,9 @@ import { useStore, peek, type ViewMode } from '../state'
 const clip = {}
 
 const FINISH = {
-  gloss: { metalness: 0.6, roughness: 0.21, clearcoat: 1, clearcoatRoughness: 0.06, sheen: 0.4 },
-  satin: { metalness: 0.5, roughness: 0.44, clearcoat: 0.35, clearcoatRoughness: 0.4, sheen: 0.25 },
-  chrome: { metalness: 1, roughness: 0.045, clearcoat: 1, clearcoatRoughness: 0.02, sheen: 0 },
+  gloss: { metalness: 0.5, roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.01, sheen: 0.1 },
+  satin: { metalness: 0.6, roughness: 0.35, clearcoat: 0.1, clearcoatRoughness: 0.3, sheen: 0.1 },
+  chrome: { metalness: 1, roughness: 0.02, clearcoat: 1, clearcoatRoughness: 0.01, sheen: 0 },
 } as const
 
 /** Clay and blueprint passes share one material, so the shell's three groups collapse. */
@@ -148,8 +148,8 @@ export function Car(props: ComponentProps<'group'>) {
         {
           float gap = 0.0;
           // engine cover, then the cowl ahead of the windscreen
-          gap = max(gap, 1.0 - smoothstep(0.0, 0.0032, abs(vUv.x - 0.295)));
-          gap = max(gap, 1.0 - smoothstep(0.0, 0.0032, abs(vUv.x - 0.828)));
+          gap = max(gap, 1.0 - smoothstep(0.0, 0.001, abs(vUv.x - 0.295)));
+          gap = max(gap, 1.0 - smoothstep(0.0, 0.001, abs(vUv.x - 0.828)));
           // only across the upper surface, dying before it reaches the shoulders
           float band = smoothstep(0.03, 0.10, vUv.y) * (1.0 - smoothstep(0.40, 0.47, vUv.y));
           diffuseColor.rgb *= 1.0 - 0.82 * gap * band;
@@ -159,16 +159,16 @@ export function Car(props: ComponentProps<'group'>) {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <roughnessmap_fragment>',
         `#include <roughnessmap_fragment>
-         float peel = noise(vUv * 800.0);
-         roughnessFactor += peel * 0.04;
+         float peel = noise(vUv * 2400.0);
+         roughnessFactor += peel * 0.05;
         `
       )
       
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <normal_fragment_begin>',
         `#include <normal_fragment_begin>
-         float n1 = noise(vUv * 1200.0) * 2.0 - 1.0;
-         float n2 = noise(vUv * 1200.0 + vec2(5.0)) * 2.0 - 1.0;
+         float n1 = noise(vUv * 3600.0) * 2.0 - 1.0;
+         float n2 = noise(vUv * 3600.0 + vec2(5.0)) * 2.0 - 1.0;
          normal = normalize(normal + vec3(n1, n2, 0.0) * 0.015);
         `
       )
@@ -178,12 +178,15 @@ export function Car(props: ComponentProps<'group'>) {
 
   const glassMat = useMemo(() => {
     const m = new THREE.MeshPhysicalMaterial({
-      color: '#05070d',
-      metalness: 0.28,
-      roughness: 0.035,
+      color: '#020305',
+      metalness: 0.1,
+      roughness: 0.05,
+      transmission: 1.0,
+      thickness: 0.5,
+      ior: 1.52,
       clearcoat: 1,
       clearcoatRoughness: 0.02,
-      envMapIntensity: 2.4,
+      envMapIntensity: 2.0,
       transparent: true,
     })
     m.defines = { ...(m.defines ?? {}), USE_UV: '' }
@@ -396,10 +399,10 @@ export function Car(props: ComponentProps<'group'>) {
 
       <group ref={lightRef} visible={!study}>
         <mesh geometry={head}>
-          <meshStandardMaterial {...clip} color="#ffffff" emissive="#e6efff" emissiveIntensity={0.5} toneMapped={false} />
+          <meshStandardMaterial {...clip} color="#ffffff" emissive="#e6efff" emissiveIntensity={night ? 6.0 : 0.5} toneMapped={false} />
         </mesh>
         <mesh geometry={tail}>
-          <meshStandardMaterial {...clip} color="#ff2a12" emissive="#ff2a12" emissiveIntensity={0.5} toneMapped={false} />
+          <meshStandardMaterial {...clip} color="#ff2a12" emissive="#ff2a12" emissiveIntensity={night ? 4.0 : 0.5} toneMapped={false} />
         </mesh>
       </group>
 

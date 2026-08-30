@@ -29,11 +29,11 @@ body {
 
 /* ── custom cursor ───────────────────────────────────────────────────────── */
 @media (pointer: coarse) {
-  body, button, a { cursor: auto; }
+  body, button, a, svg, circle { cursor: auto; }
   .cursor-ring, .cursor-dot { display: none; }
 }
 
-button, a { cursor: none; }
+button, a, .design__handle, .swatch, .chip { cursor: none; }
 
 .cursor-dot {
   position: fixed;
@@ -382,7 +382,6 @@ button, a { cursor: none; }
   background:
     radial-gradient(circle at 32% 26%, var(--f), transparent 46%),
     linear-gradient(150deg, color-mix(in srgb, var(--c) 78%, #fff), var(--c) 62%);
-  cursor: pointer;
   padding: 0;
   outline-offset: 3px;
   transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.25s ease;
@@ -404,7 +403,6 @@ button, a { cursor: none; }
   background: transparent;
   border: 1px solid var(--line);
   padding: 7px 10px;
-  cursor: pointer;
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 .chip:hover { color: var(--bone); border-color: rgba(244, 241, 234, 0.34); }
@@ -488,7 +486,6 @@ button, a { cursor: none; }
   background: none;
   border: 0;
   padding: 0;
-  cursor: pointer;
   font: inherit;
   letter-spacing: inherit;
   text-transform: inherit;
@@ -511,7 +508,6 @@ button, a { cursor: none; }
   fill: var(--accent);
   stroke: rgba(5, 6, 10, 0.9);
   stroke-width: 2;
-  cursor: ns-resize;
   transition: r 0.15s ease;
 }
 .design__handle:hover, .design__handle:focus-visible { r: 8; outline: none; }
@@ -527,7 +523,6 @@ button, a { cursor: none; }
   background: none;
   border: 0;
   color: var(--dim);
-  cursor: pointer;
   pointer-events: auto;
 }
 .sound:hover, .sound--on { color: var(--bone); }
