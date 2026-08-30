@@ -450,7 +450,7 @@ export function Car(props: ComponentProps<'group'>) {
         wireframeMatRef.current.color.set('#00ffcc')
       }
     }
-    paintMat.envMapIntensity = 1.35 + Math.sin(state.clock.elapsedTime * 2.0) * 0.4
+    paintMat.envMapIntensity = 1.35 + Math.sin(state.clock.elapsedTime * 2.0) * 0.4 + Math.abs(peek().scrollVelocity || 0) * 0.02
     if (launching && groupRef.current) {
       groupRef.current.position.y = (Math.random() - 0.5) * 0.04
       groupRef.current.position.z = (Math.random() - 0.5) * 0.02
