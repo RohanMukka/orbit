@@ -69,6 +69,11 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
     const targetGlow = s.launching ? 4.0 : 0.0
     if (tireMatRef.current) {
       tireMatRef.current.emissiveIntensity = THREE.MathUtils.damp(tireMatRef.current.emissiveIntensity, targetGlow, 2, dt)
+      if (s.launching) {
+        tireMatRef.current.emissive.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+      } else {
+        tireMatRef.current.emissive.set('#ff4400')
+      }
     }
 
     const scaleYZ = s.launching ? 1.3 : 1.0
