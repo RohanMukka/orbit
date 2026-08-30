@@ -225,6 +225,23 @@ function Exposure() {
   return null
 }
 
+function CursorLight() {
+  const ref = useRef<THREE.SpotLight>(null!)
+  
+  useFrame((state, dt) => {
+    if (!ref.current) return
+    const targetX = state.pointer.x * 5
+    const targetY = 2 + state.pointer.y * 2
+    
+    ref.current.position.x = THREE.MathUtils.damp(ref.current.position.x, targetX, 5, dt)
+    ref.current.position.y = THREE.MathUtils.damp(ref.current.position.y, targetY, 5, dt)
+  })
+  
+  return (
+    <spotLight ref={ref} position={[0, 2, 4]} intensity={2} distance={10} penumbra={1} angle={0.5} color="#ffffff" />
+  )
+}
+
 export function Studio() {
   return (
     <>
@@ -238,6 +255,7 @@ export function Studio() {
       {/* Tight, dark ambient occlusion core shadow right under the tires/belly */}
       <ContactShadows position={[0, 0.004, 0]} opacity={0.95} scale={8} blur={1.2} far={1} resolution={1024} frames={100} color="#000205" />
       <KeyLight />
+      <CursorLight />
       <ambientLight intensity={0.1} />
     </>
   )
