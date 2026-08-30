@@ -327,6 +327,7 @@ export function Car(props: ComponentProps<'group'>) {
       if (m && 'emissiveIntensity' in m) {
         let e = 0.3 + g.userData.i * 5.5
         if (st.launching) e *= 3.0 // Flare taillights on launch
+        e += Math.abs(peek().scrollVelocity || 0) * 0.1 // Kinetic taillight flare
         m.emissiveIntensity = e
       }
     })
