@@ -45,7 +45,7 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
   const side = Math.sign(z)
   const study = view !== 'render'
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     const s = peek()
     let target = s.spin ? 5.4 : 0
     if (s.launching) target = 100.0 // Burnout speeds
@@ -61,6 +61,9 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
     // Hovercraft flight mode fold
     const targetFold = s.launching ? (-Math.PI / 2) * side : 0
     offsetRef.current.rotation.x = THREE.MathUtils.damp(offsetRef.current.rotation.x, targetFold, 5, dt)
+
+    const targetSteer = front ? state.pointer.x * -0.5 : 0
+    offsetRef.current.rotation.y = THREE.MathUtils.damp(offsetRef.current.rotation.y, targetSteer, 5, dt)
   })
 
   return (
