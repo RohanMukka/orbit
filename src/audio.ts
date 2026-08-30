@@ -153,3 +153,69 @@ export function sweep() {
   src.start(t)
   src.stop(t + 0.3)
 }
+
+/** The Genesis reveal drop: a massive synth bass sweep. */
+export function playDrop() {
+  if (!ctx) return
+  const c = ctx
+  const t = c.currentTime
+
+  // Sub bass sweep
+  const sub = c.createOscillator()
+  sub.type = 'sine'
+  sub.frequency.setValueAtTime(150, t)
+  sub.frequency.exponentialRampToValueAtTime(20, t + 1.2)
+  
+  const subGain = c.createGain()
+  subGain.gain.setValueAtTime(0, t)
+  subGain.gain.linearRampToValueAtTime(0.6, t + 0.1)
+  subGain.gain.exponentialRampToValueAtTime(0.001, t + 2)
+  
+  sub.connect(subGain).connect(master)
+  sub.start(t)
+  sub.stop(t + 2)
+
+  // Noise impact
+  const noise = c.createBufferSource()
+  noise.buffer = brownNoise(c)
+  
+  const noiseFilter = c.createBiquadFilter()
+  noiseFilter.type = 'lowpass'
+  noiseFilter.frequency.setValueAtTime(2000, t)
+  noiseFilter.frequency.exponentialRampToValueAtTime(100, t + 1.5)
+  
+  const noiseGain = c.createGain()
+  noiseGain.gain.setValueAtTime(0, t)
+  noiseGain.gain.linearRampToValueAtTime(0.3, t + 0.05)
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 1.5)
+  
+  noise.connect(noiseFilter).connect(noiseGain).connect(master)
+  noise.start(t)
+  noise.stop(t + 1.5)
+}
+
+/** Tactile drag sound: Granular scrub based on curve tension. */
+export function scrub(tension: number) {
+  if (!ctx) return
+  const c = ctx
+  const t = c.currentTime
+  
+  const tick = c.createBufferSource()
+  tick.buffer = brownNoise(c)
+  
+  const band = c.createBiquadFilter()
+  band.type = 'bandpass'
+  band.Q.value = 5
+  // Map tension (-1 to 1 roughly) to frequency 400Hz to 1200Hz
+  const freq = 400 + Math.abs(tension) * 800
+  band.frequency.setValueAtTime(freq, t)
+  
+  const tg = c.createGain()
+  tg.gain.setValueAtTime(0.0, t)
+  tg.gain.linearRampToValueAtTime(0.05, t + 0.01)
+  tg.gain.exponentialRampToValueAtTime(0.0001, t + 0.06)
+  
+  tick.connect(band).connect(tg).connect(master)
+  tick.start(t)
+  tick.stop(t + 0.08)
+}

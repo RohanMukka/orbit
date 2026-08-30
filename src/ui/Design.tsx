@@ -76,14 +76,27 @@ export function DesignPanel() {
         ? ((SIDE.top - SIDE.bottom) / (SIDE.h - 24)) * (SIDE.h / Math.max(1, rect.height))
         : (PLAN.max / PLAN.span) * (PLAN.h / Math.max(1, rect.height))
 
+    let lastScrub = 0
     const move = (ev: PointerEvent) => {
       const delta = (startY - ev.clientY) * perPx
       const cur = peek().shape
       const range = kind === 'roof' ? ROOF_RANGE : WIDTH_RANGE
       const next = { roof: [...cur.roof], width: [...cur.width] }
-      if (kind === 'roof') next.roof[n] = clamp(from + delta, range)
-      else next.width[n] = clamp(from + delta, range)
+      let tension = 0
+      if (kind === 'roof') {
+        next.roof[n] = clamp(from + delta, range)
+        tension = next.roof[n] / range
+      } else {
+        next.width[n] = clamp(from + delta, range)
+        tension = next.width[n] / range
+      }
       set({ shape: next })
+      
+      const now = performance.now()
+      if (now - lastScrub > 50) {
+        import('../audio').then(m => m.scrub(tension))
+        lastScrub = now
+      }
     }
     const up = () => {
       window.removeEventListener('pointermove', move)
