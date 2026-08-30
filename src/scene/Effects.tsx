@@ -10,17 +10,19 @@ export function Effects() {
   const caRef = useRef<any>(null)
   const noiseRef = useRef<any>(null)
   const launching = useStore(s => s.launching)
+  const glitch = useStore(s => s.glitch)
 
   useFrame((_, dt) => {
+    const dampFactor = glitch ? 15 : 4
     if (caRef.current) {
-      const targetX = launching ? 0.015 : 0.0006
-      const targetY = launching ? 0.01 : 0.0004
-      caRef.current.offset.x = THREE.MathUtils.damp(caRef.current.offset.x, targetX, 4, dt)
-      caRef.current.offset.y = THREE.MathUtils.damp(caRef.current.offset.y, targetY, 4, dt)
+      const targetX = glitch ? 0.03 : launching ? 0.015 : 0.0006
+      const targetY = glitch ? 0.02 : launching ? 0.01 : 0.0004
+      caRef.current.offset.x = THREE.MathUtils.damp(caRef.current.offset.x, targetX, dampFactor, dt)
+      caRef.current.offset.y = THREE.MathUtils.damp(caRef.current.offset.y, targetY, dampFactor, dt)
     }
     if (noiseRef.current) {
-      const targetOpacity = launching ? 0.25 : 0.035
-      noiseRef.current.blendMode.opacity.value = THREE.MathUtils.damp(noiseRef.current.blendMode.opacity.value, targetOpacity, 4, dt)
+      const targetOpacity = glitch ? 0.6 : launching ? 0.25 : 0.035
+      noiseRef.current.blendMode.opacity.value = THREE.MathUtils.damp(noiseRef.current.blendMode.opacity.value, targetOpacity, dampFactor, dt)
     }
   })
 

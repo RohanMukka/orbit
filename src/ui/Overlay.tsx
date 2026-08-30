@@ -70,7 +70,8 @@ function Configurator() {
             className={`swatch ${p.id === paint.id ? 'is-on' : ''}`}
             style={{ ['--c' as string]: p.color, ['--f' as string]: p.flake }}
             onClick={() => {
-              set({ paint: p })
+              set({ paint: p, glitch: true })
+              setTimeout(() => set({ glitch: false }), 150)
               audio.blip()
             }}
             aria-label={p.name}
@@ -87,7 +88,8 @@ function Configurator() {
       <div className="chips">
         {VIEWS.map((v) => (
           <button key={v.id} className={`chip ${v.id === view ? 'is-on' : ''}`} onClick={() => {
-              set({ view: v.id })
+              set({ view: v.id, glitch: true })
+              setTimeout(() => set({ glitch: false }), 150)
               audio.sweep()
             }}>
             {v.name}
@@ -101,7 +103,8 @@ function Configurator() {
       <div className="chips">
         {RIMS.map((r) => (
           <button key={r.id} className={`chip ${r.id === rim.id ? 'is-on' : ''}`} onClick={() => {
-              set({ rim: r })
+              set({ rim: r, glitch: true })
+              setTimeout(() => set({ glitch: false }), 150)
               audio.blip()
             }}>
             {r.name}

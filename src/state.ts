@@ -68,6 +68,7 @@ export interface Store {
   launching: boolean
   photoMode: boolean
   rain: boolean
+  glitch: boolean
 }
 
 const urlView = new URLSearchParams(location.search).get('view') as ViewMode | null
@@ -90,6 +91,7 @@ let state: Store = {
   launching: false,
   photoMode: false,
   rain: false,
+  glitch: false,
 }
 
 const listeners = new Set<() => void>()
