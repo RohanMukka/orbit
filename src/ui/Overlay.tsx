@@ -134,8 +134,9 @@ function Configurator() {
           {exploded ? 'Reconstruct' : 'Deconstruct'}
         </button>
         <button className="chip" onClick={() => {
-          set({ photoMode: true })
-          audio.blip()
+          set({ photoMode: true, flash: true })
+          setTimeout(() => set({ flash: false }), 50)
+          audio.sweep()
         }}>
           Photo Mode
         </button>
@@ -243,6 +244,7 @@ export function Overlay() {
   const chapter = useStore((s) => s.chapter)
   const launching = useStore((s) => s.launching)
   const photoMode = useStore((s) => s.photoMode)
+  const flash = useStore((s) => s.flash)
 
   useEffect(() => {
     if (launching) document.body.classList.add('is-launching')
@@ -259,6 +261,10 @@ export function Overlay() {
 
   return (
     <>
+      <div style={{
+        position: 'fixed', inset: 0, backgroundColor: 'white', zIndex: 10000, pointerEvents: 'none',
+        opacity: flash ? 1 : 0, transition: flash ? 'none' : 'opacity 0.8s ease-out'
+      }} />
       <Cursor />
       <Boot />
       {!photoMode && (
