@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { CHAPTERS } from './chapters'
-import { PAINTS, RIMS, VIEWS, set, useStore } from '../state'
+import { PAINTS, RIMS, VIEWS, set, useStore, peek } from '../state'
 import { DesignPanel } from './Design'
 import * as audio from '../audio'
 import { BODY_RES } from '../car/body'
@@ -408,10 +408,12 @@ export function Overlay() {
 function Speedometer() {
   const launching = useStore((s) => s.launching)
   const [speed, setSpeed] = useState(0)
+  const valRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!launching) {
       setSpeed(0)
+      if (valRef.current) valRef.current.style.transform = 'translate(0px, 0px)'
       return
     }
 
@@ -425,6 +427,12 @@ function Speedometer() {
       const currentSpeed = Math.floor(Math.pow(elapsed * 2, 3) * 10)
       setSpeed(Math.min(9999, currentSpeed))
       
+      if (peek().launching) {
+        if (valRef.current) valRef.current.style.transform = `translate(${(Math.random() - 0.5) * 8}px, ${(Math.random() - 0.5) * 8}px)`
+      } else {
+        if (valRef.current) valRef.current.style.transform = 'translate(0px, 0px)'
+      }
+
       req = requestAnimationFrame(update)
     }
     
@@ -450,8 +458,10 @@ function Speedometer() {
       textAlign: 'center',
       lineHeight: 1
     }}>
-      {speed.toString().padStart(4, '0')}
-      <div style={{ fontSize: '1.5vw', letterSpacing: '0.2em', opacity: 0.8, marginTop: '10px' }}>KM/H</div>
+      <div ref={valRef}>
+        {speed.toString().padStart(4, '0')}
+        <div style={{ fontSize: '1.5vw', letterSpacing: '0.2em', opacity: 0.8, marginTop: '10px' }}>KM/H</div>
+      </div>
     </div>
   )
 }
