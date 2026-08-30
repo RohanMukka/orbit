@@ -254,7 +254,8 @@ export function Overlay() {
             <div className="outro__foot">
               <button 
                 className="ignite-btn"
-                onClick={() => {
+                onClick={async () => {
+                  await audio.enable() // Ensure sound plays even if they hadn't turned it on
                   set({ launching: true })
                   audio.playLaunch()
                 }}

@@ -321,7 +321,7 @@ export function Car(props: ComponentProps<'group'>) {
       
       // Rumble phase (0 to 1s)
       if (lt < 1.0) {
-        const rumble = lt * 0.04
+        const rumble = lt * 0.12 // Aggressive shake
         group.position.x = (Math.random() - 0.5) * rumble
         group.position.y = (Math.random() - 0.5) * rumble
         group.position.z = (Math.random() - 0.5) * rumble
