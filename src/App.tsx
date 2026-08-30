@@ -12,6 +12,7 @@ import { Exhaust } from './scene/Exhaust'
 import { WeldingSparks } from './scene/WeldingSparks'
 import { CyberRain } from './scene/Weather'
 import { CyberDust } from './scene/Dust'
+import { TireSmoke } from './scene/TireSmoke'
 import { Overlay } from './ui/Overlay'
 import { set, peek, viewLocked } from './state'
 import * as audio from './audio'
@@ -96,6 +97,7 @@ export function App() {
             <WeldingSparks />
             <CyberRain />
             <CyberDust />
+            <TireSmoke />
             <Hyperspace />
             <Preload all />
           </Suspense>
