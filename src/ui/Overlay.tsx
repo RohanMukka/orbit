@@ -139,6 +139,17 @@ function Configurator() {
         }}>
           Photo Mode
         </button>
+        <button className="chip" onClick={() => {
+          const newShape = {
+            roof: [0, Math.random() * 0.6 - 0.3, Math.random() * 0.8 - 0.2, Math.random() * 0.6 - 0.3, 0],
+            width: [0, Math.random() * 0.5 - 0.2, Math.random() * 0.7 - 0.2, Math.random() * 0.5 - 0.2, 0]
+          }
+          set({ shape: newShape, glitch: true })
+          setTimeout(() => set({ glitch: false }), 150)
+          audio.sweep()
+        }}>
+          Auto-Sculpt
+        </button>
       </div>
     </div>
   )
