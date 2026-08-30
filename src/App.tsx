@@ -4,6 +4,7 @@ import { AdaptiveDpr, Preload, useProgress } from '@react-three/drei'
 import * as THREE from 'three'
 import { Car } from './car/Car'
 import { Studio } from './scene/Studio'
+import { ScannerLight } from './scene/ScannerLight'
 import { Rig, SHOTS, chapterFloat } from './scene/Rig'
 import { Effects } from './scene/Effects'
 import { Hyperspace } from './scene/Hyperspace'
@@ -82,6 +83,7 @@ export function App() {
         >
           <Suspense fallback={null}>
             <Studio />
+            <ScannerLight />
             <Car />
             <Exhaust />
             <Effects />
