@@ -14,7 +14,7 @@ export function Effects() {
   const glitch = useStore(s => s.glitch)
   const view = useStore(s => s.view)
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     const dampFactor = glitch ? 15 : 4
     if (caRef.current) {
       const targetX = glitch ? 0.03 : launching ? 0.015 : 0.0006
@@ -29,6 +29,8 @@ export function Effects() {
     if (vignetteRef.current) {
       const targetDarkness = launching ? 1.15 : 0.85
       vignetteRef.current.darkness = THREE.MathUtils.damp(vignetteRef.current.darkness, targetDarkness, dampFactor, dt)
+      const breath = Math.sin(state.clock.elapsedTime * 2) * 0.04
+      vignetteRef.current.offset = 0.28 + breath
     }
   })
 
