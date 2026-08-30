@@ -7,7 +7,7 @@ export function Effects() {
   const ca = useMemo(() => new THREE.Vector2(0.0006, 0.0004), [])
   return (
     <EffectComposer multisampling={0} enableNormalPass={false}>
-      <DepthOfField focusDistance={0.015} focalLength={0.04} bokehScale={3.5} />
+      <DepthOfField target={[0, 0.68, 0]} focalLength={0.04} bokehScale={3.0} height={480} />
       <Bloom intensity={0.62} luminanceThreshold={0.8} luminanceSmoothing={0.3} mipmapBlur radius={0.68} />
       <ChromaticAberration offset={ca} radialModulation modulationOffset={0.42} blendFunction={BlendFunction.NORMAL} />
       <Vignette offset={0.28} darkness={0.85} />
