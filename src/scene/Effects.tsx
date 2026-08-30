@@ -32,7 +32,8 @@ export function Effects() {
       const targetDarkness = Math.min(1.5, (launching ? 1.15 : 0.85) + Math.abs(s.scrollVelocity || 0) * 0.005)
       vignetteRef.current.darkness = THREE.MathUtils.damp(vignetteRef.current.darkness, targetDarkness, dampFactor, dt)
       const breath = Math.sin(state.clock.elapsedTime * 2) * 0.04
-      vignetteRef.current.offset = 0.28 + breath
+      const shake = launching ? (Math.random() - 0.5) * 0.05 : 0
+      vignetteRef.current.offset = 0.28 + breath + shake
     }
   })
 
