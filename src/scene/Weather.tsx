@@ -1,7 +1,7 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { useStore } from '../state'
+import { useStore, peek } from '../state'
 
 const COUNT = 2000
 
@@ -23,19 +23,27 @@ export function CyberRain() {
   
   useFrame((_, dt) => {
     if (!rain || !meshRef.current) return
+    const s = peek()
     
     for (let i = 0; i < COUNT; i++) {
       let y = positions[i * 3 + 1]
+      let z = positions[i * 3 + 2]
+      
       y -= dt * 15
+      z -= (s.scrollVelocity || 0) * dt * 0.5
       
       if (y < 0) {
         y = 10
         positions[i * 3 + 0] = (Math.random() - 0.5) * 20
-        positions[i * 3 + 2] = (Math.random() - 0.5) * 20
+        z = (Math.random() - 0.5) * 20
       }
-      positions[i * 3 + 1] = y
+      if (z < -15) z += 30
+      if (z > 15) z -= 30
       
-      dummy.position.set(positions[i * 3 + 0], y, positions[i * 3 + 2])
+      positions[i * 3 + 1] = y
+      positions[i * 3 + 2] = z
+      
+      dummy.position.set(positions[i * 3 + 0], y, z)
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
     }
