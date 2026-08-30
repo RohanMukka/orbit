@@ -45,9 +45,56 @@ export function CyberRain() {
   if (!rain) return null
   
   return (
-    <instancedMesh ref={meshRef} args={[undefined as any, undefined as any, COUNT]}>
-      <boxGeometry args={[0.01, 0.4, 0.01]} />
-      <meshBasicMaterial color="#00ffff" transparent opacity={0.5} />
+    <>
+      <instancedMesh ref={meshRef} args={[undefined as any, undefined as any, COUNT]}>
+        <boxGeometry args={[0.01, 0.4, 0.01]} />
+        <meshBasicMaterial color="#00ffff" transparent opacity={0.5} />
+      </instancedMesh>
+      <RainSplashes />
+    </>
+  )
+}
+
+export function RainSplashes() {
+  const rain = useStore((s) => s.rain)
+  const meshRef = useRef<THREE.InstancedMesh>(null)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+
+  const splashes = useMemo(() => {
+    return Array.from({ length: 500 }, () => ({
+      x: (Math.random() - 0.5) * 20,
+      z: (Math.random() - 0.5) * 20,
+      scale: 1.5 + Math.random(),
+    }))
+  }, [])
+
+  useFrame((_, dt) => {
+    if (!rain || !meshRef.current) return
+    
+    for (let i = 0; i < 500; i++) {
+      const d = splashes[i]
+      d.scale -= dt * 5.0
+      
+      if (d.scale <= 0) {
+        d.scale = 1.5 + Math.random()
+        d.x = (Math.random() - 0.5) * 20
+        d.z = (Math.random() - 0.5) * 20
+      }
+      
+      dummy.position.set(d.x, 0.01, d.z)
+      dummy.scale.set(d.scale, d.scale, d.scale)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true
+  })
+
+  if (!rain) return null
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined as any, undefined as any, 500]}>
+      <boxGeometry args={[0.02, 0.02, 0.02]} />
+      <meshBasicMaterial color="#ffffff" transparent depthWrite={false} />
     </instancedMesh>
   )
 }
