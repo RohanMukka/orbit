@@ -44,6 +44,7 @@ export function CyberRain() {
       positions[i * 3 + 2] = z
       
       dummy.position.set(positions[i * 3 + 0], y, z)
+      dummy.scale.set(1, s.launching ? 40.0 : 1.0, 1)
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
     }
