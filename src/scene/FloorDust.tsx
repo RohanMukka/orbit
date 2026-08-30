@@ -7,6 +7,7 @@ export function FloorDust() {
   const launching = useStore((s) => s.launching)
   const count = 300
   const meshRef = useRef<THREE.InstancedMesh>(null)
+  const matRef = useRef<THREE.MeshBasicMaterial>(null)
 
   const particles = useMemo(() => {
     const arr = []
@@ -23,9 +24,17 @@ export function FloorDust() {
 
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     if (!meshRef.current) return
     let needsUpdate = false
+
+    if (matRef.current) {
+      if (launching) {
+        matRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+      } else {
+        matRef.current.color.set('#ffffff')
+      }
+    }
 
     for (let i = 0; i < count; i++) {
       const p = particles[i]
@@ -77,7 +86,7 @@ export function FloorDust() {
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
       <boxGeometry args={[0.015, 0.015, 0.015]} />
-      <meshBasicMaterial color="#ffffff" />
+      <meshBasicMaterial ref={matRef} color="#ffffff" />
     </instancedMesh>
   )
 }
