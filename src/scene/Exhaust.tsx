@@ -1,15 +1,25 @@
 import { useRef, useMemo } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
-import { useStore } from '../state'
+import { useStore, peek } from '../state'
 
 function ThrusterFlames() {
   const mesh1 = useRef<THREE.Mesh>(null!)
   const mesh2 = useRef<THREE.Mesh>(null!)
+  const matRef = useRef<THREE.MeshBasicMaterial>(null!)
   const launching = useStore(s => s.launching)
   const ltRef = useRef(0)
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
+    if (matRef.current && peek().launching) {
+      matRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+      
+      // Sync the second mesh's material color if it's separate
+      if (mesh2.current && mesh2.current.material && mesh2.current.material !== matRef.current) {
+        (mesh2.current.material as THREE.MeshBasicMaterial).color.copy(matRef.current.color)
+      }
+    }
+
     if (!launching) {
       ltRef.current = 0
       if (mesh1.current) mesh1.current.visible = false
@@ -49,7 +59,7 @@ function ThrusterFlames() {
     <group>
       <mesh ref={mesh1} rotation={[0, 0, -Math.PI / 2]} visible={false}>
         <coneGeometry args={[0.2, 1.5, 16]} />
-        <meshBasicMaterial color="#00ffff" transparent opacity={0.8} blending={THREE.AdditiveBlending} depthWrite={false} />
+        <meshBasicMaterial ref={matRef} color="#00ffff" transparent opacity={0.8} blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
       <mesh ref={mesh2} rotation={[0, 0, -Math.PI / 2]} visible={false}>
         <coneGeometry args={[0.2, 1.5, 16]} />
