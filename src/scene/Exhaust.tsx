@@ -107,7 +107,7 @@ function Shockwave() {
       const s = THREE.MathUtils.damp(meshRef.current.scale.x, velBoost, 10, dt)
       meshRef.current.scale.set(s, s, s)
       materialRef.current.opacity = THREE.MathUtils.damp(materialRef.current.opacity, 0, 5, dt)
-      meshRef.current.rotation.x += dt * 10.0
+      meshRef.current.rotation.x += dt * (10.0 + Math.abs(peek().scrollVelocity || 0) * 0.5)
     }
   })
 
@@ -171,8 +171,8 @@ export function Exhaust() {
 
     // Spawn new particles
     let toSpawn = Math.floor(dt * 200) // basic spawn rate during rumble
-    // Increase spawn rate when blasting off
-    if (lt > 1.0) toSpawn = Math.floor(dt * 800)
+    // Increase spawn rate when blasting off + scroll velocity boost
+    if (lt > 1.0) toSpawn = Math.floor(dt * (800 + Math.abs(peek().scrollVelocity || 0) * 10))
 
     for (let i = 0; i < count; i++) {
       const p = particles[i]
@@ -192,7 +192,7 @@ export function Exhaust() {
         if (lt < 1.0) {
           p.vx = -4 - Math.random() * 8
         } else {
-          p.vx = -15 - Math.random() * 25 // faster blast
+          p.vx = -15 - Math.random() * 25 - Math.abs(peek().scrollVelocity || 0) * 0.3 // scroll-boosted blast
         }
         
         p.vy = (Math.random() - 0.5) * 4 + 1.0 // slight upward drift
