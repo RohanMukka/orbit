@@ -255,9 +255,13 @@ export function Overlay() {
               <button 
                 className="ignite-btn"
                 onClick={async () => {
-                  await audio.enable() // Ensure sound plays even if they hadn't turned it on
                   set({ launching: true })
-                  audio.playLaunch()
+                  try {
+                    await audio.enable()
+                    audio.playLaunch()
+                  } catch (e) {
+                    console.error(e)
+                  }
                 }}
               >
                 IGNITE
