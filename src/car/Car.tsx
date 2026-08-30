@@ -437,11 +437,16 @@ export function Car(props: ComponentProps<'group'>) {
   const showShell = !blueprint || revealed.current < 3.0
 
   useFrame((state, dt) => {
+    const launching = peek().launching
     if (wireframeMatRef.current) {
       wireframeMatRef.current.opacity = 0.03 + Math.abs(Math.sin(state.clock.elapsedTime * 3.0)) * 0.04
+      if (launching) {
+        wireframeMatRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+      } else {
+        wireframeMatRef.current.color.set('#00ffcc')
+      }
     }
     paintMat.envMapIntensity = 1.35 + Math.sin(state.clock.elapsedTime * 2.0) * 0.4
-    const launching = peek().launching
     if (launching && groupRef.current) {
       groupRef.current.position.y = (Math.random() - 0.5) * 0.04
       groupRef.current.position.z = (Math.random() - 0.5) * 0.02
