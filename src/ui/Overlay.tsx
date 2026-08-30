@@ -53,6 +53,7 @@ function Configurator() {
   const chapter = useStore((s) => s.chapter)
   const view = useStore((s) => s.view)
   const exploded = useStore((s) => s.exploded)
+  const rain = useStore((s) => s.rain)
   const open = chapter >= 1
 
   return (
@@ -109,6 +110,9 @@ function Configurator() {
       </div>
 
       <div className="chips chips--wide">
+        <button className={`chip ${rain ? 'is-on' : ''}`} onClick={() => set({ rain: !rain })}>
+          {rain ? 'Rain off' : 'Rain on'}
+        </button>
         <button className={`chip ${night ? 'is-on' : ''}`} onClick={() => set({ night: !night })}>
           {night ? 'Lights on' : 'Lights off'}
         </button>
