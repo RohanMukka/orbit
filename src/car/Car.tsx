@@ -70,6 +70,10 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
     if (tireMatRef.current) {
       tireMatRef.current.emissiveIntensity = THREE.MathUtils.damp(tireMatRef.current.emissiveIntensity, targetGlow, 2, dt)
     }
+
+    const scaleYZ = s.launching ? 1.3 : 1.0
+    group.current.scale.y = THREE.MathUtils.damp(group.current.scale.y, scaleYZ, 5, dt)
+    group.current.scale.z = THREE.MathUtils.damp(group.current.scale.z, scaleYZ * side, 5, dt)
   })
 
   return (
