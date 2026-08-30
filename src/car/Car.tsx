@@ -492,6 +492,8 @@ export function Car(props: ComponentProps<'group'>) {
         10,
         dt
       )
+      underglowRef.current.width = THREE.MathUtils.damp(underglowRef.current.width, launching ? 8.0 : 4.0, 4, dt)
+      underglowRef.current.height = THREE.MathUtils.damp(underglowRef.current.height, launching ? 3.0 : 1.0, 4, dt)
     }
   })
 
