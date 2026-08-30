@@ -38,6 +38,7 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
   const view = useStore((s) => s.view)
   const group = useRef<THREE.Group>(null!)
   const offsetRef = useRef<THREE.Group>(null!)
+  const tireMatRef = useRef<THREE.MeshStandardMaterial>(null!)
   const tire = useMemo(() => buildTire(width), [width])
   const rimGeo = useMemo(() => buildRim(width), [width])
   const brake = useMemo(() => buildBrake(), [])
@@ -64,6 +65,11 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
 
     const targetSteer = front ? state.pointer.x * -0.5 : 0
     offsetRef.current.rotation.y = THREE.MathUtils.damp(offsetRef.current.rotation.y, targetSteer, 5, dt)
+
+    const targetGlow = s.launching ? 4.0 : 0.0
+    if (tireMatRef.current) {
+      tireMatRef.current.emissiveIntensity = THREE.MathUtils.damp(tireMatRef.current.emissiveIntensity, targetGlow, 2, dt)
+    }
   })
 
   return (
@@ -74,7 +80,7 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
           {study ? (
             <StudyMaterial view={view} tint="#6b7078" />
           ) : (
-            <meshStandardMaterial {...clip} color="#0a0a0c" roughness={0.82} metalness={0.05} />
+            <meshStandardMaterial {...clip} ref={tireMatRef} color="#0a0a0c" roughness={0.82} metalness={0.05} emissive="#ff4400" emissiveIntensity={0} />
           )}
         </mesh>
         <mesh geometry={rimGeo} castShadow>
