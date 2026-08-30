@@ -451,6 +451,7 @@ export function Car(props: ComponentProps<'group'>) {
       }
     }
     paintMat.envMapIntensity = 1.35 + Math.sin(state.clock.elapsedTime * 2.0) * 0.4 + Math.abs(peek().scrollVelocity || 0) * 0.02
+    glassMat.envMapIntensity = 2.0 + Math.sin(state.clock.elapsedTime * 2.0) * 0.2 + Math.abs(peek().scrollVelocity || 0) * 0.05
     if (launching && groupRef.current) {
       groupRef.current.position.y = (Math.random() - 0.5) * 0.04
       groupRef.current.position.z = (Math.random() - 0.5) * 0.02
