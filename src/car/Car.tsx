@@ -410,6 +410,14 @@ export function Car(props: ComponentProps<'group'>) {
 
   return (
     <group {...props} ref={groupRef}>
+      <rectAreaLight
+        position={[0, 0.1, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        width={2.0}
+        height={4.5}
+        intensity={15}
+        color={paint.flake}
+      />
       <group ref={blueprintRef} visible={showBlueprint}>
         <lineSegments geometry={rings}>
           <lineBasicMaterial color="#2f7d95" transparent opacity={0.55} toneMapped={false} />
