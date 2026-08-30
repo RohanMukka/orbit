@@ -444,6 +444,12 @@ export function Car(props: ComponentProps<'group'>) {
     }
 
     if (underglowRef.current) {
+      if (launching) {
+        underglowRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+      } else {
+        underglowRef.current.color.set('#00e5ff')
+      }
+
       const targetIntensity = launching
         ? Math.random() * 50.0 + 10.0
         : Math.abs(Math.sin(state.clock.elapsedTime * 4.0)) * 5.0 + 5.0
