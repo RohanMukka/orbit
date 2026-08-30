@@ -251,6 +251,7 @@ export function Car(props: ComponentProps<'group'>) {
   }, [paintMat, carbonMat, paint, f])
   const blueprint = view === 'wire'
   const underglowRef = useRef<THREE.RectAreaLight>(null!)
+  const headlightsGroupRef = useRef<THREE.Group>(null!)
   const lightRef = useRef<THREE.Group>(null!)
   const shellRef = useRef<THREE.Group>(null!)
   const blueprintRef = useRef<THREE.Group>(null!)
@@ -420,6 +421,14 @@ export function Car(props: ComponentProps<'group'>) {
         })
       }
     }
+
+    if (headlightsGroupRef.current) {
+      if (revealed.current < 3.0) {
+        headlightsGroupRef.current.visible = Math.random() > 0.5;
+      } else {
+        headlightsGroupRef.current.visible = true;
+      }
+    }
   })
 
   // Blueprint always renders during genesis, then only if view === 'wire'
@@ -464,10 +473,12 @@ export function Car(props: ComponentProps<'group'>) {
 
   return (
     <group {...props} ref={groupRef}>
-      <pointLight position={[3.0, 0.4, 1.2]} intensity={night ? 25 : 0} distance={15} color="#e6f2ff" />
-      <pointLight position={[3.0, 0.4, -1.2]} intensity={night ? 25 : 0} distance={15} color="#e6f2ff" />
-      <pointLight position={[-2.8, 0.6, 1.0]} intensity={night ? 15 : 0} distance={10} color="#ff0000" />
-      <pointLight position={[-2.8, 0.6, -1.0]} intensity={night ? 15 : 0} distance={10} color="#ff0000" />
+      <group ref={headlightsGroupRef}>
+        <pointLight position={[3.0, 0.4, 1.2]} intensity={night ? 25 : 0} distance={15} color="#e6f2ff" />
+        <pointLight position={[3.0, 0.4, -1.2]} intensity={night ? 25 : 0} distance={15} color="#e6f2ff" />
+        <pointLight position={[-2.8, 0.6, 1.0]} intensity={night ? 15 : 0} distance={10} color="#ff0000" />
+        <pointLight position={[-2.8, 0.6, -1.0]} intensity={night ? 15 : 0} distance={10} color="#ff0000" />
+      </group>
       <rectAreaLight
         ref={underglowRef}
         position={[0, 0.1, 0]}
