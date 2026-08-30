@@ -5,6 +5,13 @@ import { DesignPanel } from './Design'
 import * as audio from '../audio'
 import { BODY_RES } from '../car/body'
 
+function getHexProgress(prog: number, vel: number) {
+  if (Math.abs(vel) > 15) {
+    return Math.floor(Math.random() * 0xfff).toString(16).padStart(3, '0').toUpperCase() + '%'
+  }
+  return (prog * 100).toFixed(0).padStart(3, '0') + '%'
+}
+
 function Telemetry() {
   const progress = useStore((s) => s.progress)
   const paint = useStore((s) => s.paint)
@@ -30,7 +37,7 @@ function Telemetry() {
       </div>
       <div className="hud__row">
         <span className="hud__k">Timeline</span>
-        <span className="hud__v">{(progress * 100).toFixed(0).padStart(3, '0')}%</span>
+        <span className="hud__v">{getHexProgress(progress, scrollVelocity)}</span>
       </div>
       <div className="hud__row">
         <span className="hud__k">G-Force</span>
