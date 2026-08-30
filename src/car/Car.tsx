@@ -197,7 +197,8 @@ export function Car(props: ComponentProps<'group'>) {
       clearcoat: 1,
       clearcoatRoughness: 0.0,
       envMapIntensity: 2.5,
-      transparent: false,
+      transparent: true,
+      opacity: 1.0,
     })
     return m
   }, [])
@@ -209,6 +210,8 @@ export function Car(props: ComponentProps<'group'>) {
       roughness: 0.6,
       clearcoat: 0.3,
       envMapIntensity: 0.5,
+      transparent: true,
+      opacity: 1.0,
     })
   }, [])
 
@@ -421,16 +424,17 @@ export function Car(props: ComponentProps<'group'>) {
         </mesh>
 
         <mesh geometry={ducktail} castShadow={!study} ref={ducktailRef}>
-          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0c0d10" metalness={0.45} roughness={0.4} clearcoat={0.7} />}
+          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0c0d10" metalness={0.45} roughness={0.4} clearcoat={0.7} />}
         </mesh>
         <mesh geometry={mirrors} castShadow={!study} ref={mirrorsRef}>
-          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0c0d10" metalness={0.5} roughness={0.35} clearcoat={0.8} />}
+          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0c0d10" metalness={0.5} roughness={0.35} clearcoat={0.8} />}
         </mesh>
         <mesh geometry={archLips} castShadow={!study} ref={archLipsRef}>
           {study ? (
             <StudyMaterial view={view} />
           ) : (
             <meshPhysicalMaterial {...clip}
+              transparent
               color={paint.color}
               metalness={f.metalness}
               roughness={f.roughness}
@@ -450,12 +454,12 @@ export function Car(props: ComponentProps<'group'>) {
           </mesh>
         </>
       )}
-      <mesh geometry={splitter} visible={!blueprint} castShadow={!study} ref={splitterRef}>
-        {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
-      </mesh>
-      <mesh geometry={diffuser} visible={!blueprint} castShadow={!study} ref={diffuserRef}>
-        {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
-      </mesh>
+        <mesh geometry={splitter} visible={!blueprint} castShadow={!study} ref={splitterRef}>
+          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
+        </mesh>
+        <mesh geometry={diffuser} visible={!blueprint} castShadow={!study} ref={diffuserRef}>
+          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
+        </mesh>
 
       {/* Housings sit outside the emissive group so they stay dark. */}
       <mesh geometry={headCups} visible={!study && !blueprint} ref={headCupsRef}>
