@@ -432,6 +432,12 @@ export function Car(props: ComponentProps<'group'>) {
       groupRef.current.position.z = 0
     }
 
+    if (groupRef.current) {
+      const targetPitch = launching ? 0.05 : 0.0
+      groupRef.current.rotation.z = THREE.MathUtils.damp(groupRef.current.rotation.z, targetPitch, 4, dt)
+      groupRef.current.rotation.x = THREE.MathUtils.damp(groupRef.current.rotation.x, targetPitch, 4, dt)
+    }
+
     if (underglowRef.current) {
       const targetIntensity = launching
         ? Math.random() * 50.0 + 10.0
