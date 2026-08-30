@@ -414,31 +414,28 @@ export function Car(props: ComponentProps<'group'>) {
               <primitive object={paintMat} attach="material-0" />
               <primitive object={glassMat} attach="material-1" />
               <meshPhysicalMaterial {...clip}
-                transparent
                 attach="material-2"
                 color="#0c0d10"
-                metalness={0.45}
-                roughness={0.44}
-                clearcoat={0.7}
-                clearcoatRoughness={0.35}
-                envMapIntensity={0.9}
+                metalness={0.85}
+                roughness={0.6}
+                clearcoat={0.3}
+                envMapIntensity={0.5}
               />
             </>
           )}
         </mesh>
 
         <mesh geometry={ducktail} castShadow={!study} ref={ducktailRef}>
-          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0c0d10" metalness={0.45} roughness={0.4} clearcoat={0.7} />}
+          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0c0d10" metalness={0.45} roughness={0.4} clearcoat={0.7} />}
         </mesh>
         <mesh geometry={mirrors} castShadow={!study} ref={mirrorsRef}>
-          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0c0d10" metalness={0.5} roughness={0.35} clearcoat={0.8} />}
+          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0c0d10" metalness={0.5} roughness={0.35} clearcoat={0.8} />}
         </mesh>
         <mesh geometry={archLips} castShadow={!study} ref={archLipsRef}>
           {study ? (
             <StudyMaterial view={view} />
           ) : (
             <meshPhysicalMaterial {...clip}
-              transparent
               color={paint.color}
               metalness={f.metalness}
               roughness={f.roughness}
