@@ -530,8 +530,8 @@ export function Car(props: ComponentProps<'group'>) {
         </mesh>
 
 
-        <mesh geometry={ducktail} castShadow={!study} ref={ducktailRef}>
-          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0c0d10" metalness={0.45} roughness={0.4} clearcoat={0.7} />}
+        <mesh geometry={ducktail} castShadow={!study} ref={ducktailRef} material={study ? undefined : paintMat}>
+          {study && <StudyMaterial view={view} />}
         </mesh>
         <mesh geometry={mirrors} castShadow={!study} ref={mirrorsRef}>
           {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0c0d10" metalness={0.5} roughness={0.35} clearcoat={0.8} />}

@@ -5,14 +5,19 @@ import { CAR, bodyPoint, canopySpan, intakeAperture, INTAKE_CENTRE } from './bod
 const tube = (pts: THREE.Vector3[], radius: number, radial = 8) =>
   new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 64, radius, radial, false)
 
-/** Full-width tail blade — the car's signature at night. */
 export function buildTailLight() {
-  const pts: THREE.Vector3[] = []
-  for (let i = 0; i <= 24; i++) {
-    const t = (i / 24) * 2 - 1
-    pts.push(new THREE.Vector3(-2.2 - 0.13 * (1 - t * t), 0.86 - 0.03 * t * t, t * 0.7))
+  const parts: THREE.BufferGeometry[] = []
+  for (const s of [1, -1]) {
+    // Outer light
+    const outer = new THREE.BoxGeometry(0.04, 0.12, 0.22)
+    outer.translate(-2.23, 0.85, s * 0.7)
+    parts.push(outer)
+    // Inner light
+    const inner = new THREE.BoxGeometry(0.04, 0.12, 0.22)
+    inner.translate(-2.25, 0.85, s * 0.4)
+    parts.push(inner)
   }
-  return tube(pts, 0.022, 10)
+  return merge(parts)
 }
 
 /** The path each headlight blade follows, from the fender top into the nose. */
@@ -47,20 +52,31 @@ export function buildHeadLightHousings() {
   return merge([cup(1), cup(-1)])
 }
 
-/**
- * Ducktail lip traced along the trailing edge of the engine deck. A free-
- * standing wing on struts reads as a plank hovering behind the car; a lip
- * that follows the body's own edge stays part of the shape.
- */
 export function buildDucktail() {
-  const pts: THREE.Vector3[] = []
-  for (let i = 0; i <= 40; i++) {
-    const th = 0.78 + (i / 40) * (Math.PI - 1.56)
-    const p = bodyPoint(0.06, th)
-    pts.push(new THREE.Vector3(p.x - 0.015, p.y + 0.028, p.z))
+  const parts: THREE.BufferGeometry[] = []
+
+  // Main horizontal wing
+  const wing = new THREE.BoxGeometry(0.35, 0.04, 2.1)
+  wing.rotateZ(0.08) // Slight tilt
+  wing.translate(-2.3, 1.25, 0)
+  parts.push(wing)
+
+  for (const s of [1, -1]) {
+    // Vertical side endplates
+    const endplate = new THREE.BoxGeometry(0.45, 0.25, 0.03)
+    endplate.rotateZ(0.08)
+    endplate.translate(-2.3, 1.25, s * 1.05)
+    parts.push(endplate)
+
+    // Connecting struts to the body
+    const strut = new THREE.BoxGeometry(0.18, 0.45, 0.05)
+    strut.rotateZ(-0.25) // Sweep backwards
+    // Position it bridging from body to the wing
+    strut.translate(-2.15, 1.05, s * 0.4)
+    parts.push(strut)
   }
-  const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.4)
-  return new THREE.TubeGeometry(curve, 96, 0.019, 8, false)
+
+  return merge(parts)
 }
 
 /** Camera-pod mirrors on thin stalks. */
@@ -93,7 +109,6 @@ export function buildSplitter() {
   return g
 }
 
-/** Rear diffuser: a ramp under the tail with vertical strakes. */
 export function buildDiffuser() {
   const parts: THREE.BufferGeometry[] = []
   const ramp = new THREE.BoxGeometry(0.9, 0.035, 1.5)
@@ -106,6 +121,17 @@ export function buildDiffuser() {
     strake.translate(-1.85, 0.28 + Math.abs(i) * 0.012, i * 0.32)
     parts.push(strake)
   }
+
+  // 4 exhaust pipes
+  for (const s of [1, -1]) {
+    for (const offset of [0.4, 0.58]) {
+      const exhaust = new THREE.CylinderGeometry(0.045, 0.045, 0.3, 16)
+      exhaust.rotateZ(Math.PI / 2) // point backwards
+      exhaust.translate(-2.15, 0.32, s * offset)
+      parts.push(exhaust)
+    }
+  }
+
   return merge(parts)
 }
 
