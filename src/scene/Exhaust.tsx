@@ -59,6 +59,58 @@ function ThrusterFlames() {
   )
 }
 
+function Shockwave() {
+  const meshRef = useRef<THREE.Mesh>(null!)
+  const materialRef = useRef<THREE.MeshBasicMaterial>(null!)
+  const launching = useStore(s => s.launching)
+  const ltRef = useRef(0)
+
+  useFrame((_, dt) => {
+    if (!launching) {
+      ltRef.current = 0
+      if (meshRef.current) meshRef.current.scale.set(1, 1, 1)
+      if (materialRef.current) materialRef.current.opacity = 0
+      return
+    }
+
+    const prevLt = ltRef.current
+    ltRef.current += dt
+    const lt = ltRef.current
+
+    if (lt < 1.0) {
+      if (meshRef.current) meshRef.current.scale.set(1, 1, 1)
+      if (materialRef.current) materialRef.current.opacity = 0
+      return
+    }
+
+    if (meshRef.current && materialRef.current) {
+      if (prevLt <= 1.0) {
+        meshRef.current.scale.set(1, 1, 1)
+        materialRef.current.opacity = 0.8
+        meshRef.current.position.set(-2.4, 0.5, 0)
+      }
+      
+      const s = THREE.MathUtils.damp(meshRef.current.scale.x, 60, 10, dt)
+      meshRef.current.scale.set(s, s, s)
+      materialRef.current.opacity = THREE.MathUtils.damp(materialRef.current.opacity, 0, 5, dt)
+    }
+  })
+
+  return (
+    <mesh ref={meshRef}>
+      <sphereGeometry args={[1, 32, 32]} />
+      <meshBasicMaterial 
+        ref={materialRef} 
+        color="#ffffff" 
+        transparent 
+        opacity={0} 
+        depthWrite={false} 
+        side={THREE.DoubleSide} 
+      />
+    </mesh>
+  )
+}
+
 export function Exhaust() {
   const launching = useStore(s => s.launching)
   const meshRef = useRef<THREE.InstancedMesh>(null!)
@@ -202,6 +254,7 @@ export function Exhaust() {
         />
       </instancedMesh>
       <ThrusterFlames />
+      <Shockwave />
     </group>
   )
 }
