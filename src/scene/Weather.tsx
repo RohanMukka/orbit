@@ -29,24 +29,30 @@ export function CyberRain() {
     audio.panRain(state.pointer.x)
     
     for (let i = 0; i < COUNT; i++) {
+      let x = positions[i * 3 + 0]
       let y = positions[i * 3 + 1]
       let z = positions[i * 3 + 2]
       
+      x -= state.pointer.x * dt * 15.0
       y -= dt * 15
       z -= (s.scrollVelocity || 0) * dt * 0.5
       
       if (y < 0) {
         y = 10
-        positions[i * 3 + 0] = (Math.random() - 0.5) * 20
+        x = (Math.random() - 0.5) * 20
         z = (Math.random() - 0.5) * 20
       }
       if (z < -15) z += 30
       if (z > 15) z -= 30
       
+      if (x < -10) x += 20
+      if (x > 10) x -= 20
+      
+      positions[i * 3 + 0] = x
       positions[i * 3 + 1] = y
       positions[i * 3 + 2] = z
       
-      dummy.position.set(positions[i * 3 + 0], y, z)
+      dummy.position.set(x, y, z)
       dummy.scale.set(1, s.launching ? 40.0 : 1.0, 1)
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
