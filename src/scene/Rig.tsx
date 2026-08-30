@@ -181,6 +181,7 @@ export function Rig() {
     camera.up.set(Math.sin(bank.current), Math.cos(bank.current), 0).normalize()
 
     camera.lookAt(target.current)
+    camera.rotateX((s.scrollVelocity || 0) * -0.001)
 
     if (Math.abs(camera.fov - fov) > 0.01) {
       camera.fov = THREE.MathUtils.damp(camera.fov, fov, 2.5, dt)
