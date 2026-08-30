@@ -1,6 +1,7 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import * as audio from '../audio'
 import { useStore, peek } from '../state'
 
 const COUNT = 2000
@@ -21,9 +22,11 @@ export function CyberRain() {
     return pos
   }, [])
   
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     if (!rain || !meshRef.current) return
     const s = peek()
+    
+    audio.panRain(state.pointer.x)
     
     for (let i = 0; i < COUNT; i++) {
       let y = positions[i * 3 + 1]
