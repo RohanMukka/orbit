@@ -16,6 +16,7 @@ let droneLevel: GainNode
 let rushLevel: GainNode
 let rainGain: GainNode | null = null
 let rainSource: AudioBufferSourceNode | null = null
+let rainFilter: BiquadFilterNode | null = null
 
 export const isOn = () => !!ctx
 
@@ -272,23 +273,30 @@ export function setRain(enabled: boolean) {
     rainSource.buffer = brownNoise(ctx)
     rainSource.loop = true
     
-    const filter = ctx.createBiquadFilter()
-    filter.type = 'highpass'
-    filter.frequency.value = 2500
+    rainFilter = ctx.createBiquadFilter()
+    rainFilter.type = 'highpass'
+    rainFilter.frequency.value = 2500
     
     rainGain = ctx.createGain()
     rainGain.gain.setValueAtTime(0, ctx.currentTime)
     rainGain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 1.0)
     
-    rainSource.connect(filter).connect(rainGain).connect(master)
+    rainSource.connect(rainFilter).connect(rainGain).connect(master)
     rainSource.start()
   } else if (!enabled && rainGain && rainSource) {
     rainGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.0)
     const rs = rainSource
     rainSource = null
     rainGain = null
+    rainFilter = null
     setTimeout(() => {
       rs.stop()
     }, 1000)
   }
+}
+
+export function updateRain(scrollVelocity: number) {
+  if (!ctx || !rainFilter) return
+  const target = 2500 + Math.abs(scrollVelocity) * 30
+  rainFilter.frequency.setTargetAtTime(target, ctx.currentTime, 0.1)
 }

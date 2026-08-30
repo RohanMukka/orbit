@@ -55,6 +55,9 @@ function useScrollDriver() {
       }
       set({ progress, entered: progress > 0.01 || prev.entered, scrollVelocity: vel })
       audio.setScroll(progress)
+      if (prev.rain) {
+        audio.updateRain(vel)
+      }
     }
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(read)
