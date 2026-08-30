@@ -1,4 +1,4 @@
-import { EffectComposer, Bloom, ChromaticAberration, Vignette, Noise, SMAA, Glitch } from '@react-three/postprocessing'
+import { EffectComposer, Bloom, ChromaticAberration, Vignette, Noise, SMAA } from '@react-three/postprocessing'
 import { BlendFunction } from 'postprocessing'
 import * as THREE from 'three'
 import { useMemo, useRef } from 'react'
@@ -12,7 +12,6 @@ export function Effects() {
   const vignetteRef = useRef<any>(null)
   const launching = useStore(s => s.launching)
   const glitch = useStore(s => s.glitch)
-  const view = useStore(s => s.view)
 
   useFrame((state, dt) => {
     const dampFactor = glitch ? 15 : 4
@@ -36,7 +35,6 @@ export function Effects() {
 
   return (
     <EffectComposer multisampling={0} enableNormalPass={false}>
-      <Glitch delay={[1.5, 3.5] as any} duration={[0.1, 0.3] as any} strength={[0.01, 0.05] as any} active={view === 'wire'} />
       <Bloom intensity={0.8} luminanceThreshold={0.7} luminanceSmoothing={0.4} mipmapBlur radius={0.8} />
       <ChromaticAberration ref={caRef} offset={ca} radialModulation modulationOffset={0.42} blendFunction={BlendFunction.NORMAL} />
       <Vignette ref={vignetteRef} offset={0.28} darkness={0.85} />
