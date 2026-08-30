@@ -2,7 +2,7 @@ import { EffectComposer, Bloom, ChromaticAberration, Vignette, Noise, SMAA, Dept
 import { BlendFunction } from 'postprocessing'
 import * as THREE from 'three'
 import { useMemo, useRef } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
 
 function DynamicDOF() {
   const dof = useRef<any>(null)
