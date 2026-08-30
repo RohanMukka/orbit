@@ -327,12 +327,17 @@ export function Car(props: ComponentProps<'group'>) {
       blueprintRef.current.children[0].scale.setScalar(1 + ex * 0.2) // rings
       blueprintRef.current.children[2].position.y = ex * 0.8 // curves
       
-      if (ex > 0.01 && st.view !== 'wire' && revealed.current >= 3.0) {
+      if (st.view === 'wire' && revealed.current >= 3.0) {
+        blueprintRef.current.visible = true
+        ;((blueprintRef.current.children[0] as THREE.LineSegments).material as THREE.Material).opacity = 0.55
+        ;((blueprintRef.current.children[1] as THREE.LineSegments).material as THREE.Material).opacity = 0.32
+        ;((blueprintRef.current.children[2] as THREE.LineSegments).material as THREE.Material).opacity = 1.0
+      } else if (ex > 0.01 && revealed.current >= 3.0) {
         blueprintRef.current.visible = true
         ;((blueprintRef.current.children[0] as THREE.LineSegments).material as THREE.Material).opacity = ex * 0.55
         ;((blueprintRef.current.children[1] as THREE.LineSegments).material as THREE.Material).opacity = ex * 0.32
         ;((blueprintRef.current.children[2] as THREE.LineSegments).material as THREE.Material).opacity = ex
-      } else if (ex <= 0.01 && st.view !== 'wire' && revealed.current >= 3.0) {
+      } else if (ex <= 0.01 && revealed.current >= 3.0) {
         blueprintRef.current.visible = false
       }
     }
@@ -340,6 +345,19 @@ export function Car(props: ComponentProps<'group'>) {
     if (shellRef.current) {
       shellRef.current.position.y = ex * -0.6
       shellRef.current.scale.setScalar(1 - ex * 0.1)
+      
+      if (st.view !== 'wire' && revealed.current >= 3.0) {
+        // Ensure shell opacity is restored if we were in blueprint mode
+        shellRef.current.traverse((o) => {
+          if ((o as THREE.Mesh).isMesh) {
+            const mats = Array.isArray((o as THREE.Mesh).material) ? (o as THREE.Mesh).material as THREE.Material[] : [(o as THREE.Mesh).material as THREE.Material]
+            mats.forEach(m => {
+              m.transparent = true
+              m.opacity = 1.0
+            })
+          }
+        })
+      }
     }
   })
 
