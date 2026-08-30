@@ -167,7 +167,7 @@ function Streaks() {
   )
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     if (!ref.current) return
     const launching = peek().launching
     const P = shapedProfiles(peek().shape)
@@ -176,7 +176,7 @@ function Streaks() {
       s.offset += s.speed * (launching ? 15.0 : 1.0) * dt
       const x = (s.offset % 20) - 10
       let y = s.y
-      let z = s.z
+      let z = s.z + (state.pointer.x * s.speed * 0.1)
 
       const halfLen = CAR.length / 2
       if (x > -halfLen && x < halfLen) {
