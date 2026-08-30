@@ -10,6 +10,7 @@ export function Effects() {
   const caRef = useRef<any>(null)
   const noiseRef = useRef<any>(null)
   const vignetteRef = useRef<any>(null)
+  const bloomRef = useRef<any>(null)
   const launching = useStore(s => s.launching)
   const glitch = useStore(s => s.glitch)
 
@@ -35,11 +36,15 @@ export function Effects() {
       const shake = launching ? (Math.random() - 0.5) * 0.05 : 0
       vignetteRef.current.offset = 0.28 + breath + shake
     }
+    if (bloomRef.current) {
+      const targetBloom = launching ? 1.5 + (Math.random() * 0.5) : 0.5
+      bloomRef.current.intensity = THREE.MathUtils.damp(bloomRef.current.intensity, targetBloom, dampFactor, dt)
+    }
   })
 
   return (
     <EffectComposer multisampling={0} enableNormalPass={false}>
-      <Bloom intensity={0.8} luminanceThreshold={0.7} luminanceSmoothing={0.4} mipmapBlur radius={0.8} />
+      <Bloom ref={bloomRef} intensity={0.8} luminanceThreshold={0.7} luminanceSmoothing={0.4} mipmapBlur radius={0.8} />
       <ChromaticAberration ref={caRef} offset={ca} radialModulation modulationOffset={0.42} blendFunction={BlendFunction.NORMAL} />
       <Vignette ref={vignetteRef} offset={0.28} darkness={0.85} />
       <Noise ref={noiseRef} premultiply opacity={0.035} blendFunction={BlendFunction.OVERLAY} />
