@@ -147,7 +147,8 @@ export function Rig() {
     fov += Math.abs(s.scrollVelocity) * 0.1
 
     if (s.launching) {
-      fov = 95
+      fov = 95 + (camera.userData.lt || 0) * 15.0
+      fov = Math.min(130, fov)
     }
 
     if (s.launching || s.glitch) {
