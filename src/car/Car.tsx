@@ -484,9 +484,9 @@ export function Car(props: ComponentProps<'group'>) {
         underglowRef.current.color.set('#00e5ff')
       }
 
-      const targetIntensity = launching
+      const targetIntensity = (launching
         ? Math.random() * 50.0 + 10.0
-        : Math.abs(Math.sin(state.clock.elapsedTime * 4.0)) * 5.0 + 5.0
+        : Math.abs(Math.sin(state.clock.elapsedTime * 4.0)) * 5.0 + 5.0) + Math.abs(peek().scrollVelocity || 0) * 0.3
       underglowRef.current.intensity = THREE.MathUtils.damp(
         underglowRef.current.intensity,
         targetIntensity,
