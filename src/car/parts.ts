@@ -193,3 +193,48 @@ export function buildIntakeTrim() {
   )
   return merge(sides)
 }
+
+/** The procedural "engineering block" (skateboard chassis, battery pack, motors). */
+export function buildChassis() {
+  const parts: THREE.BufferGeometry[] = []
+
+  const floor = new THREE.BoxGeometry(2.8, 0.12, 1.3)
+  floor.translate(0.1, 0.22, 0)
+  parts.push(floor)
+
+  for (let z = -0.6; z <= 0.6; z += 0.15) {
+    const ridge = new THREE.BoxGeometry(2.6, 0.14, 0.05)
+    ridge.translate(0.1, 0.22, z)
+    parts.push(ridge)
+  }
+
+  const fMotor = new THREE.CylinderGeometry(0.18, 0.18, 0.6, 16)
+  fMotor.rotateX(Math.PI / 2)
+  fMotor.translate(1.4, 0.35, 0)
+  parts.push(fMotor)
+
+  const fUnit = new THREE.BoxGeometry(0.4, 0.2, 0.5)
+  fUnit.translate(1.4, 0.5, 0)
+  parts.push(fUnit)
+
+  const rMotor = new THREE.CylinderGeometry(0.22, 0.22, 0.7, 16)
+  rMotor.rotateX(Math.PI / 2)
+  rMotor.translate(-1.4, 0.38, 0)
+  parts.push(rMotor)
+
+  for (const s of [1, -1]) {
+    const rail = new THREE.BoxGeometry(3.6, 0.08, 0.08)
+    rail.translate(0.1, 0.3, s * 0.7)
+    parts.push(rail)
+
+    for (const a of AXLES) {
+      const arm = new THREE.CylinderGeometry(0.03, 0.03, 0.5, 8)
+      arm.rotateZ(Math.PI / 2)
+      arm.rotateY(s * 0.3)
+      arm.translate(a.x - 0.2, 0.35, s * 0.5)
+      parts.push(arm)
+    }
+  }
+
+  return merge(parts)
+}

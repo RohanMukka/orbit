@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { buildBodyGeometry, shapedProfiles, updateBodyPositions, CAR } from './body'
 import { buildTire, buildRim, buildBrake, buildCaliper } from './wheel'
-import { buildTailLight, buildHeadLights, buildDucktail, buildMirrors, buildSplitter, buildDiffuser, buildCanopyTrim, buildIntakeTrim, buildArchLips, buildHeadLightHousings, AXLES } from './parts'
+import { buildTailLight, buildHeadLights, buildDucktail, buildMirrors, buildSplitter, buildDiffuser, buildCanopyTrim, buildIntakeTrim, buildArchLips, buildHeadLightHousings, buildChassis, AXLES } from './parts'
 import { buildProfileCurves, buildSectionRings, buildGroundRule } from './blueprint'
 import { useStore, peek, type ViewMode } from '../state'
 
@@ -125,6 +125,7 @@ export function Car(props: ComponentProps<'group'>) {
   const canopyTrim = useMemo(() => buildCanopyTrim(), [])
   const intakeTrim = useMemo(() => buildIntakeTrim(), [])
   const archLips = useMemo(() => buildArchLips(), [])
+  const chassis = useMemo(() => buildChassis(), [])
 
   const f = FINISH[paint.finish]
 
@@ -395,7 +396,7 @@ export function Car(props: ComponentProps<'group'>) {
     }
 
     if (shellRef.current) {
-      shellRef.current.position.y = ex * 0.1
+      shellRef.current.position.y = ex * 0.8
       
       if (st.view !== 'wire' && revealed.current >= 3.0) {
         // Ensure shell opacity is restored if we were in blueprint mode
@@ -429,6 +430,10 @@ export function Car(props: ComponentProps<'group'>) {
           <lineBasicMaterial color="#9ff2ff" transparent opacity={1} toneMapped={false} />
         </lineSegments>
       </group>
+
+      <mesh geometry={chassis} visible={!blueprint} castShadow={!study}>
+        {study ? <StudyMaterial view={view} /> : <meshStandardMaterial color="#0c0d10" metalness={0.8} roughness={0.4} />}
+      </mesh>
 
       <group ref={shellRef} visible={showShell}>
         <mesh geometry={dragging ? draft : body} castShadow={!study} receiveShadow={!study}>
