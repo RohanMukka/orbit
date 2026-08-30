@@ -125,17 +125,19 @@ function Floor() {
   )
 }
 
-/** Light streaks that rush past the car once the lights come on. */
+import { CAR, shapedProfiles } from '../car/body'
+
+/** Aerodynamic wind tunnel particles tracing the generated splines. */
 function Streaks() {
   const night = useStore((s) => s.night)
   const ref = useRef<THREE.InstancedMesh>(null!)
   const seeds = useMemo(
     () =>
-      Array.from({ length: 26 }, () => ({
-        z: (Math.random() - 0.5) * 22,
-        y: 0.02 + Math.random() * 0.04,
-        speed: 16 + Math.random() * 26,
-        len: 3 + Math.random() * 9,
+      Array.from({ length: 150 }, () => ({
+        z: (Math.random() - 0.5) * 4,
+        y: Math.random() * 1.5,
+        speed: 12 + Math.random() * 15,
+        len: 1 + Math.random() * 3,
         offset: Math.random() * 60,
       })),
     []
@@ -145,10 +147,30 @@ function Streaks() {
   useFrame((state) => {
     if (!ref.current) return
     const t = state.clock.elapsedTime
+    const P = shapedProfiles(peek().shape)
+
     seeds.forEach((s, i) => {
-      const x = ((s.offset + t * s.speed) % 60) - 30
-      dummy.position.set(-x, s.y, s.z)
-      dummy.scale.set(s.len, 1, 0.008 + Math.abs(s.z) * 0.0008)
+      const x = ((s.offset + t * s.speed) % 20) - 10
+      let y = s.y
+      let z = s.z
+
+      const halfLen = CAR.length / 2
+      if (x > -halfLen && x < halfLen) {
+         const u = x / CAR.length + 0.5
+         const hw = P.halfWidth.at(u)
+         const roof = P.roof.at(u)
+         
+         if (Math.abs(z) < hw + 0.1 && y < roof + 0.1) {
+             const pushOutZ = (hw + 0.1 - Math.abs(z)) * Math.sign(z)
+             const pushOutY = (roof + 0.1 - y)
+             if (Math.abs(z) > hw * 0.6) z += pushOutZ * 0.9
+             else y += pushOutY * 0.9
+         }
+      }
+
+      dummy.position.set(-x, y, z)
+      // Since it's not rotated, plane is in XY. Make it scale in X.
+      dummy.scale.set(s.len, 0.015, 1)
       dummy.updateMatrix()
       ref.current.setMatrixAt(i, dummy.matrix)
     })
@@ -157,9 +179,9 @@ function Streaks() {
 
   if (!night) return null
   return (
-    <instancedMesh ref={ref} args={[undefined, undefined, seeds.length]} rotation={[-Math.PI / 2, 0, 0]}>
+    <instancedMesh ref={ref} args={[undefined, undefined, seeds.length]}>
       <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial color="#9db4ff" transparent opacity={0.3} toneMapped={false} blending={THREE.AdditiveBlending} depthWrite={false} />
+      <meshBasicMaterial color="#9db4ff" transparent opacity={0.45} toneMapped={false} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide} />
     </instancedMesh>
   )
 }

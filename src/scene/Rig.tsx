@@ -21,7 +21,8 @@ export const SHOTS: Shot[] = [
   { pos: [0.5, 0.95, 10.4], target: [0, 0.66, 0], fov: 26, offset: 1.15 },
   // Design: near-profile, so a dragged roofline is legible as it moves.
   { pos: [0.9, 1.0, 8.9], target: [0, 0.6, 0], fov: 29, offset: -0.8 },
-  { pos: [-4.9, 1.3, 5.3], target: [0, 0.7, 0], fov: 33, offset: 0.8 },
+  // Macro shot: looking tightly at the rear quarter panel and procedural gap
+  { pos: [-1.2, 0.8, 1.5], target: [-0.4, 0.65, 0.9], fov: 15, offset: 0.35 },
   { pos: [-6.5, 0.82, -3.1], target: [-0.2, 0.68, 0], fov: 40, offset: -0.55 },
 ]
 
