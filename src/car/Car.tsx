@@ -414,6 +414,10 @@ export function Car(props: ComponentProps<'group'>) {
 
   return (
     <group {...props} ref={groupRef}>
+      <pointLight position={[3.0, 0.4, 1.2]} intensity={night ? 25 : 0} distance={15} color="#e6f2ff" />
+      <pointLight position={[3.0, 0.4, -1.2]} intensity={night ? 25 : 0} distance={15} color="#e6f2ff" />
+      <pointLight position={[-2.8, 0.6, 1.0]} intensity={night ? 15 : 0} distance={10} color="#ff0000" />
+      <pointLight position={[-2.8, 0.6, -1.0]} intensity={night ? 15 : 0} distance={10} color="#ff0000" />
       <rectAreaLight
         position={[0, 0.1, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
