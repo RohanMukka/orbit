@@ -103,7 +103,8 @@ function Shockwave() {
       
       materialRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
 
-      const s = THREE.MathUtils.damp(meshRef.current.scale.x, 60, 10, dt)
+      const velBoost = 60 + Math.abs(peek().scrollVelocity || 0) * 0.5
+      const s = THREE.MathUtils.damp(meshRef.current.scale.x, velBoost, 10, dt)
       meshRef.current.scale.set(s, s, s)
       materialRef.current.opacity = THREE.MathUtils.damp(materialRef.current.opacity, 0, 5, dt)
       meshRef.current.rotation.x += dt * 10.0
