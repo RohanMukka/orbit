@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { peek } from '../state'
 
 export function CyberDust({ count = 500 }) {
   const mesh = useRef<THREE.InstancedMesh>(null)
@@ -26,10 +27,16 @@ export function CyberDust({ count = 500 }) {
   useFrame((_, delta) => {
     if (!mesh.current) return
     
+    const launching = peek().launching
+
     particles.forEach((particle, i) => {
       particle.x += particle.vx * delta
       particle.y += particle.vy * delta
       particle.z += particle.vz * delta
+
+      if (launching) {
+        particle.z -= delta * 150.0
+      }
 
       if (particle.x > 5) particle.x = -5
       if (particle.x < -5) particle.x = 5
@@ -39,6 +46,11 @@ export function CyberDust({ count = 500 }) {
       if (particle.z < -5) particle.z = 5
 
       dummy.position.set(particle.x, particle.y, particle.z)
+      if (launching) {
+        dummy.scale.set(1, 1, 150.0)
+      } else {
+        dummy.scale.set(1, 1, 1)
+      }
       dummy.updateMatrix()
       mesh.current!.setMatrixAt(i, dummy.matrix)
     })
