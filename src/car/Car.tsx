@@ -202,6 +202,16 @@ export function Car(props: ComponentProps<'group'>) {
     return m
   }, [])
 
+  const carbonMat = useMemo(() => {
+    return new THREE.MeshPhysicalMaterial({
+      color: '#0c0d10',
+      metalness: 0.85,
+      roughness: 0.6,
+      clearcoat: 0.3,
+      envMapIntensity: 0.5,
+    })
+  }, [])
+
   useEffect(() => {
     paintMat.color.set(paint.color)
     paintMat.sheenColor.set(paint.flake)
@@ -406,23 +416,8 @@ export function Car(props: ComponentProps<'group'>) {
       </mesh>
 
       <group ref={shellRef} visible={showShell}>
-        <mesh geometry={dragging ? draft : body} castShadow={!study} receiveShadow={!study}>
-          {study ? (
-            <StudyMaterial view={view} />
-          ) : (
-            <>
-              <primitive object={paintMat} attach="material-0" />
-              <primitive object={glassMat} attach="material-1" />
-              <meshPhysicalMaterial {...clip}
-                attach="material-2"
-                color="#0c0d10"
-                metalness={0.85}
-                roughness={0.6}
-                clearcoat={0.3}
-                envMapIntensity={0.5}
-              />
-            </>
-          )}
+        <mesh geometry={dragging ? draft : body} castShadow={!study} receiveShadow={!study} material={study ? undefined : [paintMat, glassMat, carbonMat]}>
+          {study && <StudyMaterial view={view} />}
         </mesh>
 
         <mesh geometry={ducktail} castShadow={!study} ref={ducktailRef}>
