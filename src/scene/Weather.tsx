@@ -55,6 +55,7 @@ export function CyberRain() {
       
       dummy.position.set(x, y, z)
       dummy.scale.set(1, s.launching ? 40.0 : 1.0, 1)
+      dummy.rotation.z = state.pointer.x * 0.5
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
     }
