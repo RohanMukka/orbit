@@ -110,15 +110,19 @@ function Floor() {
 
   const gridRef = useRef<THREE.GridHelper>(null)
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     const launching = peek().launching
     if (launching && gridRef.current) {
       gridRef.current.position.x -= dt * 60.0
       if (gridRef.current.position.x < -1.0) {
         gridRef.current.position.x = (gridRef.current.position.x % 1.0)
       }
+      const mat = gridRef.current.material as THREE.LineBasicMaterial
+      mat.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
     } else if (gridRef.current) {
       gridRef.current.position.x = 0
+      const mat = gridRef.current.material as THREE.LineBasicMaterial
+      mat.color.set('#ffffff')
     }
   })
 
