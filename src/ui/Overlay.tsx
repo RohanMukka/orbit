@@ -252,7 +252,6 @@ export function Overlay() {
   const launching = useStore((s) => s.launching)
   const photoMode = useStore((s) => s.photoMode)
   const flash = useStore((s) => s.flash)
-  const scrollVelocity = useStore((s) => s.scrollVelocity)
 
   useEffect(() => {
     if (launching) document.body.classList.add('is-launching')
@@ -267,8 +266,8 @@ export function Overlay() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  const rotX = launching ? 2 : (scrollVelocity || 0) * -0.05;
-  const transformStr = `scale(${launching ? 1.03 : 1}) perspective(1000px) rotateX(${rotX}deg) translateY(${launching ? -1 : 0}%)`;
+  const rotX = launching ? 2 : 0;
+  const transformStr = launching ? `scale(1.03) perspective(1000px) rotateX(${rotX}deg) translateY(-1%)` : 'none';
 
   return (
     <>

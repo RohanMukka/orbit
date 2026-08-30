@@ -481,8 +481,8 @@ export function buildBodyGeometry(
     }
   }
   for (let j = 0; j < ring; j++) {
-    buckets.carbon.push(tailC, gridL[0][j + 1], gridR[0][j])
-    buckets.carbon.push(noseC, gridR[stations - 1][j], gridL[stations - 1][j + 1])
+    buckets.paint.push(tailC, gridR[0][j], gridL[0][j + 1])
+    buckets.paint.push(noseC, gridL[stations - 1][j + 1], gridR[stations - 1][j])
   }
 
   const order: Surface[] = ['paint', 'glass', 'carbon']
@@ -543,7 +543,8 @@ export function updateBodyPositions(
   for (const u of [0, 1]) {
     const top = P.roof.at(u)
     const bot = P.floor.at(u)
-    out[w++] = (u - 0.5) * CAR.length
+    const push = (u < 0.5 ? -1 : 1) * 0.045
+    out[w++] = (u - 0.5) * CAR.length + push
     out[w++] = (top + bot) * 0.5
     out[w++] = 0
   }

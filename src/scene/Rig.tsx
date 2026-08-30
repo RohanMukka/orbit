@@ -154,7 +154,7 @@ export function Rig() {
 
     if (s.launching || s.glitch) {
       // Violent high-frequency camera shake for engine rev or sharp tactile bump
-      const shakeAmt = s.launching ? 0.15 : 0.05
+      const shakeAmt = (s.launching ? 0.15 : 0.05) + Math.abs(s.scrollVelocity || 0) * 0.002
       nextPos.x += (Math.random() - 0.5) * shakeAmt
       nextPos.y += (Math.random() - 0.5) * shakeAmt
       nextPos.z += (Math.random() - 0.5) * shakeAmt
