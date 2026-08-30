@@ -423,6 +423,7 @@ export function Car(props: ComponentProps<'group'>) {
   const showShell = !blueprint || revealed.current < 3.0
 
   useFrame((state, dt) => {
+    paintMat.envMapIntensity = 1.35 + Math.sin(state.clock.elapsedTime * 2.0) * 0.4
     const launching = peek().launching
     if (launching && groupRef.current) {
       groupRef.current.position.y = (Math.random() - 0.5) * 0.04
