@@ -223,7 +223,15 @@ export function Car(props: ComponentProps<'group'>) {
     paintMat.clearcoat = f.clearcoat
     paintMat.clearcoatRoughness = f.clearcoatRoughness
     paintMat.sheen = f.sheen
-  }, [paintMat, paint, f])
+
+    if (paint.id === 'cyber') {
+      carbonMat.emissive.set('#ff00ff')
+      carbonMat.emissiveIntensity = 1
+    } else {
+      carbonMat.emissive.set('#000000')
+      carbonMat.emissiveIntensity = 0
+    }
+  }, [paintMat, carbonMat, paint, f])
   const blueprint = view === 'wire'
   const lightRef = useRef<THREE.Group>(null!)
   const shellRef = useRef<THREE.Group>(null!)

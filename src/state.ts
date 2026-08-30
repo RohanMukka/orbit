@@ -16,6 +16,7 @@ export const PAINTS: Paint[] = [
   { id: 'cobalt', name: 'Deep Cobalt', code: 'OR-04', color: '#17307a', flake: '#6f92ff', finish: 'gloss' },
   { id: 'moss', name: 'Verdant', code: 'OR-05', color: '#1d3b2a', flake: '#7ad6a0', finish: 'satin' },
   { id: 'liquid', name: 'Liquid Metal', code: 'OR-06', color: '#8f949c', flake: '#ffffff', finish: 'chrome' },
+  { id: 'cyber', name: 'Cyber Neon', code: 'OR-07', color: '#00ffcc', flake: '#ff00ff', finish: 'chrome' },
 ]
 
 export const RIMS = [
