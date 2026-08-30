@@ -9,6 +9,7 @@ const COUNT = 2000
 export function CyberRain() {
   const rain = useStore((s) => s.rain)
   const meshRef = useRef<THREE.InstancedMesh>(null)
+  const matRef = useRef<THREE.MeshBasicMaterial>(null)
   
   const dummy = useMemo(() => new THREE.Object3D(), [])
   
@@ -58,6 +59,14 @@ export function CyberRain() {
       meshRef.current.setMatrixAt(i, dummy.matrix)
     }
     meshRef.current.instanceMatrix.needsUpdate = true
+
+    if (matRef.current) {
+      if (s.launching) {
+        matRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+      } else {
+        matRef.current.color.set('#ffffff')
+      }
+    }
   })
   
   if (!rain) return null
@@ -66,7 +75,7 @@ export function CyberRain() {
     <>
       <instancedMesh ref={meshRef} args={[undefined as any, undefined as any, COUNT]}>
         <boxGeometry args={[0.01, 0.4, 0.01]} />
-        <meshBasicMaterial color="#00ffff" transparent opacity={0.5} />
+        <meshBasicMaterial ref={matRef} color="#ffffff" transparent opacity={0.4} />
       </instancedMesh>
       <RainSplashes />
     </>
