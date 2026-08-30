@@ -17,9 +17,9 @@ export function Effects() {
     const s = peek()
     const dampFactor = glitch ? 15 : 4
     if (caRef.current) {
-      const velMod = Math.abs(s.scrollVelocity || 0) * 0.0005
-      const targetX = (glitch ? 0.03 : launching ? 0.015 : 0.0006) + velMod
-      const targetY = (glitch ? 0.02 : launching ? 0.01 : 0.0004) + velMod
+      const velTear = Math.abs(s.scrollVelocity || 0) * 0.0002
+      const targetX = (glitch ? 0.03 : launching ? 0.015 : 0.0006) + velTear
+      const targetY = (glitch ? 0.03 : launching ? 0.015 : 0.0006) + velTear
       caRef.current.offset.x = THREE.MathUtils.damp(caRef.current.offset.x, targetX, dampFactor, dt)
       caRef.current.offset.y = THREE.MathUtils.damp(caRef.current.offset.y, targetY, dampFactor, dt)
     }
