@@ -86,6 +86,7 @@ export function CyberRain() {
 export function RainSplashes() {
   const rain = useStore((s) => s.rain)
   const meshRef = useRef<THREE.InstancedMesh>(null)
+  const matRef = useRef<THREE.MeshBasicMaterial>(null)
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
   const splashes = useMemo(() => {
@@ -96,7 +97,7 @@ export function RainSplashes() {
     }))
   }, [])
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     if (!rain || !meshRef.current) return
     
     for (let i = 0; i < 500; i++) {
@@ -115,6 +116,14 @@ export function RainSplashes() {
       meshRef.current.setMatrixAt(i, dummy.matrix)
     }
     meshRef.current.instanceMatrix.needsUpdate = true
+
+    if (matRef.current) {
+      if (peek().launching) {
+        matRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+      } else {
+        matRef.current.color.set('#ffffff')
+      }
+    }
   })
 
   if (!rain) return null
@@ -122,7 +131,7 @@ export function RainSplashes() {
   return (
     <instancedMesh ref={meshRef} args={[undefined as any, undefined as any, 500]}>
       <boxGeometry args={[0.02, 0.02, 0.02]} />
-      <meshBasicMaterial color="#ffffff" transparent depthWrite={false} />
+      <meshBasicMaterial ref={matRef} color="#ffffff" transparent depthWrite={false} />
     </instancedMesh>
   )
 }
