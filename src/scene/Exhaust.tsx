@@ -75,7 +75,7 @@ function Shockwave() {
   const launching = useStore(s => s.launching)
   const ltRef = useRef(0)
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     if (!launching) {
       ltRef.current = 0
       if (meshRef.current) meshRef.current.scale.set(1, 1, 1)
@@ -100,6 +100,8 @@ function Shockwave() {
         meshRef.current.position.set(-2.4, 0.5, 0)
       }
       
+      materialRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+
       const s = THREE.MathUtils.damp(meshRef.current.scale.x, 60, 10, dt)
       meshRef.current.scale.set(s, s, s)
       materialRef.current.opacity = THREE.MathUtils.damp(materialRef.current.opacity, 0, 5, dt)
