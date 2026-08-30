@@ -56,7 +56,7 @@ function useScrollDriver() {
       set({ progress, entered: progress > 0.01 || prev.entered, scrollVelocity: vel })
       audio.setScroll(progress)
       if (prev.rain) {
-        audio.updateRain(vel)
+        audio.updateRain(prev.launching ? 500 : vel)
       }
     }
     const onScroll = () => {
