@@ -88,6 +88,7 @@ export function Rig() {
     const aspect = state.size.width / Math.max(1, state.size.height)
     const portrait = aspect < 1.05
     let fov = THREE.MathUtils.lerp(a.fov, b.fov, t) + (s.photoMode ? 0 : Math.sin(state.clock.elapsedTime * 1.5) * 0.5)
+    fov += Math.abs(s.scrollVelocity || 0) * 0.05
 
     // Slide the whole frame sideways so the car clears the chapter's copy.
     // On mobile the copy sits above the car instead, so the frame drops
