@@ -14,9 +14,15 @@ export function Cursor() {
     let ringY = mouseY
     let isHovering = false
     let isMouseDown = false
+    let isVisible = false
     let raf = 0
 
     const onMouseMove = (e: MouseEvent) => {
+      if (!isVisible) {
+        isVisible = true
+        if (dotRef.current) dotRef.current.style.opacity = '1'
+        if (ringRef.current) ringRef.current.style.opacity = '1'
+      }
       mouseX = e.clientX
       mouseY = e.clientY
       if (dotRef.current) {
@@ -60,8 +66,8 @@ export function Cursor() {
 
   return (
     <>
-      <div className="cursor-ring" ref={ringRef} aria-hidden />
-      <div className="cursor-dot" ref={dotRef} aria-hidden />
+      <div className="cursor-ring" ref={ringRef} aria-hidden style={{ opacity: 0 }} />
+      <div className="cursor-dot" ref={dotRef} aria-hidden style={{ opacity: 0 }} />
     </>
   )
 }
