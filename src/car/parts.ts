@@ -198,42 +198,91 @@ export function buildIntakeTrim() {
 export function buildChassis() {
   const parts: THREE.BufferGeometry[] = []
 
-  const floor = new THREE.BoxGeometry(2.8, 0.12, 1.3)
-  floor.translate(0.1, 0.22, 0)
+  // Main battery floor tub
+  const floor = new THREE.BoxGeometry(2.6, 0.08, 1.2)
+  floor.translate(0, 0.15, 0)
   parts.push(floor)
 
-  for (let z = -0.6; z <= 0.6; z += 0.15) {
-    const ridge = new THREE.BoxGeometry(2.6, 0.14, 0.05)
-    ridge.translate(0.1, 0.22, z)
-    parts.push(ridge)
+  // Dense grid of battery modules (gives it that complex EV look)
+  for (let x = -0.8; x <= 0.8; x += 0.2) {
+    for (let z = -0.5; z <= 0.5; z += 0.12) {
+      const cell = new THREE.BoxGeometry(0.18, 0.04, 0.1)
+      cell.translate(x, 0.21, z)
+      parts.push(cell)
+    }
   }
 
-  const fMotor = new THREE.CylinderGeometry(0.18, 0.18, 0.6, 16)
-  fMotor.rotateX(Math.PI / 2)
-  fMotor.translate(1.4, 0.35, 0)
-  parts.push(fMotor)
+  // Motor housings with cooling fins
+  for (const mx of [1.3, -1.3]) {
+    // Core motor
+    const motor = new THREE.CylinderGeometry(0.15, 0.15, 0.5, 24)
+    motor.rotateX(Math.PI / 2)
+    motor.translate(mx, 0.3, 0)
+    parts.push(motor)
+    
+    // Cooling fins
+    for (let f = -0.2; f <= 0.2; f += 0.04) {
+      const fin = new THREE.CylinderGeometry(0.17, 0.17, 0.01, 24)
+      fin.rotateX(Math.PI / 2)
+      fin.translate(mx, 0.3, f)
+      parts.push(fin)
+    }
 
-  const fUnit = new THREE.BoxGeometry(0.4, 0.2, 0.5)
-  fUnit.translate(1.4, 0.5, 0)
-  parts.push(fUnit)
+    // Inverter box on top
+    const inverter = new THREE.BoxGeometry(0.3, 0.15, 0.4)
+    inverter.translate(mx, 0.45, 0)
+    parts.push(inverter)
+  }
 
-  const rMotor = new THREE.CylinderGeometry(0.22, 0.22, 0.7, 16)
-  rMotor.rotateX(Math.PI / 2)
-  rMotor.translate(-1.4, 0.38, 0)
-  parts.push(rMotor)
-
+  // Complex suspension linkages
   for (const s of [1, -1]) {
-    const rail = new THREE.BoxGeometry(3.6, 0.08, 0.08)
-    rail.translate(0.1, 0.3, s * 0.7)
-    parts.push(rail)
+    // Side sills (carbon fiber tubs)
+    const sill = new THREE.BoxGeometry(2.8, 0.1, 0.15)
+    sill.translate(0, 0.2, s * 0.65)
+    parts.push(sill)
 
     for (const a of AXLES) {
-      const arm = new THREE.CylinderGeometry(0.03, 0.03, 0.5, 8)
-      arm.rotateZ(Math.PI / 2)
-      arm.rotateY(s * 0.3)
-      arm.translate(a.x - 0.2, 0.35, s * 0.5)
-      parts.push(arm)
+      // Driveshafts
+      const shaft = new THREE.CylinderGeometry(0.015, 0.015, 0.6, 8)
+      shaft.rotateX(Math.PI / 2)
+      shaft.translate(a.x, 0.3, s * 0.3)
+      parts.push(shaft)
+
+      // Lower A-arms
+      const arm1 = new THREE.CylinderGeometry(0.02, 0.02, 0.5, 8)
+      arm1.rotateZ(Math.PI / 2)
+      arm1.rotateY(s * 0.4)
+      arm1.translate(a.x - 0.1, 0.25, s * 0.5)
+      parts.push(arm1)
+
+      const arm2 = new THREE.CylinderGeometry(0.02, 0.02, 0.5, 8)
+      arm2.rotateZ(Math.PI / 2)
+      arm2.rotateY(s * -0.4)
+      arm2.translate(a.x + 0.1, 0.25, s * 0.5)
+      parts.push(arm2)
+
+      // Coil springs (approximated with ribbed rings)
+      for (let r = 0; r < 10; r++) {
+        const ring = new THREE.TorusGeometry(0.04, 0.01, 8, 16)
+        ring.rotateX(Math.PI / 2)
+        ring.rotateZ(-0.2)
+        ring.translate(a.x, 0.35 + r * 0.03, s * 0.45)
+        parts.push(ring)
+      }
     }
+  }
+
+  // Cross bracing / Roll cage elements to fill the upper void
+  for (const s of [1, -1]) {
+    const brace = new THREE.CylinderGeometry(0.02, 0.02, 2.2, 8)
+    brace.rotateZ(1.2)
+    brace.translate(0, 0.5, s * 0.3)
+    parts.push(brace)
+    
+    const brace2 = new THREE.CylinderGeometry(0.02, 0.02, 2.2, 8)
+    brace2.rotateZ(-1.2)
+    brace2.translate(0, 0.5, s * 0.3)
+    parts.push(brace2)
   }
 
   return merge(parts)

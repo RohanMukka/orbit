@@ -432,7 +432,7 @@ export function Car(props: ComponentProps<'group'>) {
       </group>
 
       <mesh geometry={chassis} visible={!blueprint} castShadow={!study}>
-        {study ? <StudyMaterial view={view} /> : <meshStandardMaterial color="#0c0d10" metalness={0.8} roughness={0.4} />}
+        {study ? <StudyMaterial view={view} /> : <meshStandardMaterial color="#0a0b0d" metalness={0.9} roughness={0.4} envMapIntensity={1.2} />}
       </mesh>
 
       <group ref={shellRef} visible={showShell}>
