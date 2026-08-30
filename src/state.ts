@@ -64,6 +64,7 @@ export interface Store {
   shape: Shape
   dragging: boolean
   exploded: boolean
+  launching: boolean
 }
 
 const urlView = new URLSearchParams(location.search).get('view') as ViewMode | null
@@ -83,6 +84,7 @@ let state: Store = {
   shape: FLAT_SHAPE,
   dragging: false,
   exploded: false,
+  launching: false,
 }
 
 const listeners = new Set<() => void>()

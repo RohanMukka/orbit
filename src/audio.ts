@@ -219,3 +219,46 @@ export function scrub(tension: number) {
   tick.start(t)
   tick.stop(t + 0.08)
 }
+
+/** Cinematic Launch Sequence: Massive engine rev and blast off. */
+export function playLaunch() {
+  if (!ctx) return
+  const c = ctx
+  const t = c.currentTime
+
+  // Screaming engine synth
+  const eng = c.createOscillator()
+  eng.type = 'sawtooth'
+  eng.frequency.setValueAtTime(100, t)
+  eng.frequency.exponentialRampToValueAtTime(800, t + 1.2) // Rev up
+  eng.frequency.linearRampToValueAtTime(150, t + 4.0) // Doppler away
+  
+  const engGain = c.createGain()
+  engGain.gain.setValueAtTime(0, t)
+  engGain.gain.linearRampToValueAtTime(0.4, t + 0.5)
+  engGain.gain.exponentialRampToValueAtTime(0.001, t + 4.0)
+  
+  // Distortion filter
+  const dist = c.createBiquadFilter()
+  dist.type = 'lowpass'
+  dist.frequency.setValueAtTime(500, t)
+  dist.frequency.exponentialRampToValueAtTime(4000, t + 1.2)
+  dist.frequency.linearRampToValueAtTime(200, t + 4.0)
+
+  eng.connect(dist).connect(engGain).connect(master)
+  eng.start(t)
+  eng.stop(t + 4.0)
+
+  // Sub bass impact
+  const sub = c.createOscillator()
+  sub.type = 'sine'
+  sub.frequency.setValueAtTime(80, t)
+  sub.frequency.exponentialRampToValueAtTime(10, t + 2.0)
+  const subGain = c.createGain()
+  subGain.gain.setValueAtTime(0, t)
+  subGain.gain.linearRampToValueAtTime(0.8, t + 0.2)
+  subGain.gain.exponentialRampToValueAtTime(0.001, t + 3.0)
+  sub.connect(subGain).connect(master)
+  sub.start(t)
+  sub.stop(t + 3.0)
+}

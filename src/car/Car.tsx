@@ -46,7 +46,8 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
 
   useFrame((_, dt) => {
     const s = peek()
-    const target = s.spin ? 5.4 : 0
+    let target = s.spin ? 5.4 : 0
+    if (s.launching) target = 100.0 // Burnout speeds
     group.current.userData.v = THREE.MathUtils.damp(group.current.userData.v ?? 0, target, 1.6, dt)
     group.current.rotation.z -= group.current.userData.v * dt
   })
@@ -234,6 +235,7 @@ export function Car(props: ComponentProps<'group'>) {
   const lightRef = useRef<THREE.Group>(null!)
   const shellRef = useRef<THREE.Group>(null!)
   const blueprintRef = useRef<THREE.Group>(null!)
+  const groupRef = useRef<THREE.Group>(null!)
   const playedDrop = useRef(false)
 
   const revealed = useRef(0)
@@ -280,6 +282,42 @@ export function Car(props: ComponentProps<'group'>) {
       }
     }
 
+    const t = st.night ? 1 : 0.12
+    const g = lightRef.current
+    if (!g) return
+    g.userData.i = THREE.MathUtils.damp(g.userData.i ?? 0.12, t, 3, dt)
+    g.traverse((o) => {
+      const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined
+      if (m && 'emissiveIntensity' in m) {
+        let e = 0.3 + g.userData.i * 5.5
+        if (st.launching) e *= 3.0 // Flare taillights on launch
+        m.emissiveIntensity = e
+      }
+    })
+
+    // Cinematic Launch Animation
+    if (st.launching && groupRef.current) {
+      const group = groupRef.current
+      group.userData.launchT = (group.userData.launchT ?? 0) + dt
+      const lt = group.userData.launchT
+      
+      // Rumble phase (0 to 1s)
+      if (lt < 1.0) {
+        const rumble = lt * 0.04
+        group.position.x = (Math.random() - 0.5) * rumble
+        group.position.y = (Math.random() - 0.5) * rumble
+        group.position.z = (Math.random() - 0.5) * rumble
+      } 
+      // Blast off phase (>1.0s)
+      else {
+        // frontAxle is positive X, so +X is front. Blast forward means +X.
+        const drive = Math.pow(lt - 1.0, 3) * 60.0
+        group.position.x = drive
+        group.position.y = 0
+        group.position.z = 0
+      }
+    }
+
     // Exploded view animation
     const targetExploded = st.exploded ? 1 : 0
     explodedLerp.current = THREE.MathUtils.damp(explodedLerp.current, targetExploded, 3, dt)
@@ -303,15 +341,6 @@ export function Car(props: ComponentProps<'group'>) {
       shellRef.current.position.y = ex * -0.6
       shellRef.current.scale.setScalar(1 - ex * 0.1)
     }
-
-    const t = st.night ? 1 : 0.12
-    const g = lightRef.current
-    if (!g) return
-    g.userData.i = THREE.MathUtils.damp(g.userData.i ?? 0.12, t, 3, dt)
-    g.traverse((o) => {
-      const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined
-      if (m && 'emissiveIntensity' in m) m.emissiveIntensity = 0.3 + g.userData.i * 5.5
-    })
   })
 
   // Blueprint always renders during genesis, then only if view === 'wire'
@@ -319,7 +348,7 @@ export function Car(props: ComponentProps<'group'>) {
   const showShell = !blueprint || revealed.current < 3.0
 
   return (
-    <group {...props}>
+    <group {...props} ref={groupRef}>
       <group ref={blueprintRef} visible={showBlueprint}>
         <lineSegments geometry={rings}>
           <lineBasicMaterial color="#2f7d95" transparent opacity={0.55} toneMapped={false} />

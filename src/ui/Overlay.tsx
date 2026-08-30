@@ -181,6 +181,12 @@ import { SplitText } from './SplitText'
 
 export function Overlay() {
   const chapter = useStore((s) => s.chapter)
+  const launching = useStore((s) => s.launching)
+
+  useEffect(() => {
+    if (launching) document.body.classList.add('is-launching')
+    else document.body.classList.remove('is-launching')
+  }, [launching])
 
   return (
     <>
@@ -246,12 +252,33 @@ export function Overlay() {
               </div>
             </div>
             <div className="outro__foot">
-              <span className="micro micro--dim">Move your pointer to look around · scroll up to start over</span>
-              <span className="micro micro--dim">Concept 01</span>
+              <button 
+                className="ignite-btn"
+                onClick={() => {
+                  set({ launching: true })
+                  audio.playLaunch()
+                }}
+              >
+                IGNITE
+              </button>
             </div>
           </div>
         </footer>
       </div>
+      <Finale />
     </>
+  )
+}
+
+function Finale() {
+  const launching = useStore((s) => s.launching)
+  return (
+    <div className={`finale ${launching ? 'is-active' : ''}`}>
+      <div className="finale__credits">
+        <h2>ORBIT</h2>
+        <p>A procedural generative study.</p>
+        <span className="micro micro--dim">Hackathon 2026 · 0 Assets</span>
+      </div>
+    </div>
   )
 }

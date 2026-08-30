@@ -142,6 +142,14 @@ export function Rig() {
     nextPos.y += Math.cos(time * 0.16) * 0.08 * swing - pointer.current.y * 0.35
     nextPos.z += Math.cos(time * 0.13) * 0.22 * swing
 
+    if (s.launching) {
+      // Violent high-frequency camera shake for engine rev
+      const shakeAmt = 0.15
+      nextPos.x += (Math.random() - 0.5) * shakeAmt
+      nextPos.y += (Math.random() - 0.5) * shakeAmt
+      nextPos.z += (Math.random() - 0.5) * shakeAmt
+    }
+
     camera.position.lerp(nextPos, 1 - Math.pow(0.0015, dt))
     target.current.lerp(nextTarget, 1 - Math.pow(0.002, dt))
     camera.lookAt(target.current)
