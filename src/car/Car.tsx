@@ -16,8 +16,8 @@ import { useStore, peek, type ViewMode } from '../state'
  * A clip plane travelling down the car's length is enough: no geometry is
  * rebuilt, so the sweep costs nothing and cannot desynchronise from the shape.
  */
-const REVEAL = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 4)
-const clip = { clippingPlanes: [REVEAL], clipShadows: true }
+// The body sweeps into existence on load through a 3-stage animated reveal.
+const clip = {}
 
 const FINISH = {
   gloss: { metalness: 0.6, roughness: 0.21, clearcoat: 1, clearcoatRoughness: 0.06, sheen: 0.4 },
@@ -127,12 +127,21 @@ export function Car(props: ComponentProps<'group'>) {
    * claim intact and is how production real-time car renders do it anyway.
    */
   const paintMat = useMemo(() => {
-    const m = new THREE.MeshPhysicalMaterial({ sheenRoughness: 0.5, envMapIntensity: 1.35 })
-    m.clippingPlanes = [REVEAL]
-    m.clipShadows = true
+    const m = new THREE.MeshPhysicalMaterial({ sheenRoughness: 0.5, envMapIntensity: 1.35, transparent: true })
     // vUv only exists if something asks for it; nothing here samples a texture.
     m.defines = { ...(m.defines ?? {}), USE_UV: '' }
     m.onBeforeCompile = (shader) => {
+      shader.fragmentShader = `
+        float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+        float noise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            vec2 u = f*f*(3.0-2.0*f);
+            return mix(mix(hash(i + vec2(0.0,0.0)), hash(i + vec2(1.0,0.0)), u.x),
+                       mix(hash(i + vec2(0.0,1.0)), hash(i + vec2(1.0,1.0)), u.x), u.y);
+        }
+      ` + shader.fragmentShader;
+
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <color_fragment>',
         `#include <color_fragment>
@@ -144,6 +153,65 @@ export function Car(props: ComponentProps<'group'>) {
           // only across the upper surface, dying before it reaches the shoulders
           float band = smoothstep(0.03, 0.10, vUv.y) * (1.0 - smoothstep(0.40, 0.47, vUv.y));
           diffuseColor.rgb *= 1.0 - 0.82 * gap * band;
+        }`
+      )
+      
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <roughnessmap_fragment>',
+        `#include <roughnessmap_fragment>
+         float peel = noise(vUv * 800.0);
+         roughnessFactor += peel * 0.04;
+        `
+      )
+      
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <normal_fragment_begin>',
+        `#include <normal_fragment_begin>
+         float n1 = noise(vUv * 1200.0) * 2.0 - 1.0;
+         float n2 = noise(vUv * 1200.0 + vec2(5.0)) * 2.0 - 1.0;
+         normal = normalize(normal + vec3(n1, n2, 0.0) * 0.015);
+        `
+      )
+    }
+    return m
+  }, [])
+
+  const glassMat = useMemo(() => {
+    const m = new THREE.MeshPhysicalMaterial({
+      color: '#05070d',
+      metalness: 0.28,
+      roughness: 0.035,
+      clearcoat: 1,
+      clearcoatRoughness: 0.02,
+      envMapIntensity: 2.4,
+      transparent: true,
+    })
+    m.defines = { ...(m.defines ?? {}), USE_UV: '' }
+    m.onBeforeCompile = (shader) => {
+      shader.fragmentShader = `
+        float hashGlass(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+        float noiseGlass(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            vec2 u = f*f*(3.0-2.0*f);
+            return mix(mix(hashGlass(i + vec2(0.0,0.0)), hashGlass(i + vec2(1.0,0.0)), u.x),
+                       mix(hashGlass(i + vec2(0.0,1.0)), hashGlass(i + vec2(1.0,1.0)), u.x), u.y);
+        }
+      ` + shader.fragmentShader;
+      
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <color_fragment>',
+        `#include <color_fragment>
+        {
+          // Faux interior depth mapping
+          vec3 viewDir = normalize(vViewPosition);
+          vec2 interiorUV = vUv + viewDir.xy * 0.1;
+          
+          float seats = noiseGlass(interiorUV * 15.0);
+          float dash = noiseGlass(interiorUV * 25.0 + vec2(5.0));
+          
+          float depth = smoothstep(0.4, 0.6, seats) * 0.15 + smoothstep(0.5, 0.9, dash) * 0.2;
+          diffuseColor.rgb += vec3(depth);
         }`
       )
     }
@@ -161,18 +229,51 @@ export function Car(props: ComponentProps<'group'>) {
   }, [paintMat, paint, f])
   const blueprint = view === 'wire'
   const lightRef = useRef<THREE.Group>(null!)
+  const shellRef = useRef<THREE.Group>(null!)
+  const blueprintRef = useRef<THREE.Group>(null!)
+  const playedDrop = useRef(false)
 
   const revealed = useRef(0)
 
   useFrame((_, dt) => {
     const st = peek()
     if (!st.loaded) {
-      REVEAL.constant = -2.8
       revealed.current = 0
-    } else if (revealed.current < 1) {
-      revealed.current = Math.min(1, revealed.current + dt / 1.6)
-      const e = revealed.current
-      REVEAL.constant = THREE.MathUtils.lerp(-2.8, 4, e * e * (3 - 2 * e))
+      playedDrop.current = false
+    } else if (revealed.current < 3.2) {
+      revealed.current += dt
+      const t = revealed.current
+
+      if (t > 2.0 && !playedDrop.current) {
+        import('../audio').then(m => m.playDrop())
+        playedDrop.current = true
+      }
+
+      // Phase 1 (0-1s): Curves only
+      // Phase 2 (1-2s): Rings snap in
+      // Phase 3 (2-3s): Body fades in, blueprint fades out
+      const curvesOpacity = t < 1 ? t : (t < 2 ? 1 : Math.max(0, 3 - t))
+      const ringsOpacity = t < 1 ? 0 : (t < 2 ? (t - 1) : Math.max(0, 3 - t))
+      const shellOpacity = t < 2 ? 0 : Math.min(1, t - 2)
+
+      if (blueprintRef.current) {
+        ;(blueprintRef.current.children[0] as THREE.LineSegments).material.opacity = ringsOpacity * 0.55
+        ;(blueprintRef.current.children[1] as THREE.LineSegments).material.opacity = ringsOpacity * 0.32
+        ;(blueprintRef.current.children[2] as THREE.LineSegments).material.opacity = curvesOpacity
+      }
+
+      if (shellRef.current) {
+        shellRef.current.traverse((o) => {
+          if ((o as THREE.Mesh).isMesh) {
+            const mats = Array.isArray((o as THREE.Mesh).material) ? (o as THREE.Mesh).material as THREE.Material[] : [(o as THREE.Mesh).material as THREE.Material]
+            mats.forEach(m => {
+              m.transparent = true
+              m.opacity = shellOpacity
+              m.needsUpdate = true
+            })
+          }
+        })
+      }
     }
 
     const t = st.night ? 1 : 0.12
@@ -185,71 +286,61 @@ export function Car(props: ComponentProps<'group'>) {
     })
   })
 
+  // Blueprint always renders during genesis, then only if view === 'wire'
+  const showBlueprint = blueprint || revealed.current < 3.0
+  const showShell = !blueprint || revealed.current < 3.0
+
   return (
     <group {...props}>
-      {/* Blueprint: the four curves and the sections swept along them — the
-          claim the chapter is making, drawn rather than asserted. */}
-      {blueprint && (
-        <group>
-          <lineSegments geometry={rings}>
-            <lineBasicMaterial color="#2f7d95" transparent opacity={0.55} toneMapped={false} />
-          </lineSegments>
-          <lineSegments geometry={rule}>
-            <lineBasicMaterial color="#2f7d95" transparent opacity={0.32} toneMapped={false} />
-          </lineSegments>
-          <lineSegments geometry={curves}>
-            <lineBasicMaterial color="#9ff2ff" toneMapped={false} />
-          </lineSegments>
-        </group>
-      )}
+      <group ref={blueprintRef} visible={showBlueprint}>
+        <lineSegments geometry={rings}>
+          <lineBasicMaterial color="#2f7d95" transparent opacity={0.55} toneMapped={false} />
+        </lineSegments>
+        <lineSegments geometry={rule}>
+          <lineBasicMaterial color="#2f7d95" transparent opacity={0.32} toneMapped={false} />
+        </lineSegments>
+        <lineSegments geometry={curves}>
+          <lineBasicMaterial color="#9ff2ff" transparent opacity={1} toneMapped={false} />
+        </lineSegments>
+      </group>
 
-      {/* Shell: one lofted mesh, three material groups (paint / glass / carbon) */}
-      <mesh geometry={dragging ? draft : body} visible={!blueprint} castShadow={!study} receiveShadow={!study}>
-        {study ? (
-          <StudyMaterial view={view} />
-        ) : (
-          <>
-            <primitive object={paintMat} attach="material-0" />
-            {/* Blackout canopy: opaque, so it reads by reflection alone —
-                a transparent one would look straight through the shell. */}
-            <meshPhysicalMaterial {...clip}
-              attach="material-1"
-              color="#05070d"
-              metalness={0.28}
-              roughness={0.035}
-              clearcoat={1}
-              clearcoatRoughness={0.02}
-              envMapIntensity={2.4}
-            />
-            <meshPhysicalMaterial {...clip}
-              attach="material-2"
-              color="#0c0d10"
-              metalness={0.45}
-              roughness={0.44}
-              clearcoat={0.7}
-              clearcoatRoughness={0.35}
-              envMapIntensity={0.9}
-            />
-          </>
-        )}
-      </mesh>
+      <group ref={shellRef} visible={showShell}>
+        <mesh geometry={dragging ? draft : body} castShadow={!study} receiveShadow={!study}>
+          {study ? (
+            <StudyMaterial view={view} />
+          ) : (
+            <>
+              <primitive object={paintMat} attach="material-0" />
+              <primitive object={glassMat} attach="material-1" />
+              <meshPhysicalMaterial {...clip}
+                transparent
+                attach="material-2"
+                color="#0c0d10"
+                metalness={0.45}
+                roughness={0.44}
+                clearcoat={0.7}
+                clearcoatRoughness={0.35}
+                envMapIntensity={0.9}
+              />
+            </>
+          )}
+        </mesh>
 
-      <mesh geometry={ducktail} visible={!blueprint} castShadow={!study}>
-        {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0c0d10" metalness={0.45} roughness={0.4} clearcoat={0.7} />}
-      </mesh>
-      <mesh geometry={mirrors} visible={!blueprint} castShadow={!study}>
-        {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0c0d10" metalness={0.5} roughness={0.35} clearcoat={0.8} />}
-      </mesh>
-      {/* Arch lips take the body colour: a painted edge catching light reads as
-          the rim of a fender, where a dark one would read as a bolt-on flare. */}
-      <mesh geometry={archLips} visible={!blueprint} castShadow={!study}>
-        {study ? (
-          <StudyMaterial view={view} />
-        ) : (
-          <meshPhysicalMaterial {...clip}
-            color={paint.color}
-            metalness={f.metalness}
-            roughness={f.roughness}
+        <mesh geometry={ducktail} castShadow={!study}>
+          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0c0d10" metalness={0.45} roughness={0.4} clearcoat={0.7} />}
+        </mesh>
+        <mesh geometry={mirrors} castShadow={!study}>
+          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0c0d10" metalness={0.5} roughness={0.35} clearcoat={0.8} />}
+        </mesh>
+        <mesh geometry={archLips} castShadow={!study}>
+          {study ? (
+            <StudyMaterial view={view} />
+          ) : (
+            <meshPhysicalMaterial {...clip}
+              transparent
+              color={paint.color}
+              metalness={f.metalness}
+              roughness={f.roughness}
             clearcoat={f.clearcoat}
             clearcoatRoughness={f.clearcoatRoughness}
             envMapIntensity={1.35}
