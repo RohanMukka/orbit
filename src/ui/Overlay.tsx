@@ -271,6 +271,28 @@ export function Overlay() {
         </footer>
       </div>
       <Finale />
+      <CinematicLetterbox />
+    </>
+  )
+}
+
+function CinematicLetterbox() {
+  const launching = useStore((s) => s.launching)
+  const baseStyle: React.CSSProperties = {
+    position: 'fixed',
+    left: 0,
+    right: 0,
+    height: launching ? '12%' : '0%',
+    backgroundColor: '#000',
+    zIndex: 9999,
+    transition: 'height 0.8s cubic-bezier(0.65, 0, 0.35, 1)',
+    pointerEvents: 'none'
+  }
+
+  return (
+    <>
+      <div style={{ ...baseStyle, top: 0 }} />
+      <div style={{ ...baseStyle, bottom: 0 }} />
     </>
   )
 }
