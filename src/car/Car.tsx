@@ -421,6 +421,17 @@ export function Car(props: ComponentProps<'group'>) {
   const showBlueprint = blueprint || revealed.current < 3.0
   const showShell = !blueprint || revealed.current < 3.0
 
+  useFrame(() => {
+    const launching = peek().launching
+    if (launching && groupRef.current) {
+      groupRef.current.position.y = (Math.random() - 0.5) * 0.04
+      groupRef.current.position.z = (Math.random() - 0.5) * 0.02
+    } else if (groupRef.current) {
+      groupRef.current.position.y = 0
+      groupRef.current.position.z = 0
+    }
+  })
+
   return (
     <group {...props} ref={groupRef}>
       <pointLight position={[3.0, 0.4, 1.2]} intensity={night ? 25 : 0} distance={15} color="#e6f2ff" />
