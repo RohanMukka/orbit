@@ -47,10 +47,11 @@ function ThrusterFlames() {
     mesh1.current.position.set(x, 0.5, 0.6)
     mesh2.current.position.set(x, 0.5, -0.6)
 
-    const s1x = 0.8 + Math.random() * 0.4
-    const s1y = 0.8 + Math.random() * 0.4
-    const s2x = 0.8 + Math.random() * 0.4
-    const s2y = 0.8 + Math.random() * 0.4
+    const velSurge = 1.0 + Math.abs(peek().scrollVelocity || 0) * 0.02
+    const s1x = (0.8 + Math.random() * 0.4) * velSurge
+    const s1y = (0.8 + Math.random() * 0.4) * velSurge
+    const s2x = (0.8 + Math.random() * 0.4) * velSurge
+    const s2y = (0.8 + Math.random() * 0.4) * velSurge
     mesh1.current.scale.set(s1x, s1y, 1)
     mesh2.current.scale.set(s2x, s2y, 1)
   })
