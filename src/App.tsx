@@ -15,7 +15,7 @@ import { CyberDust } from './scene/Dust'
 import { TireSmoke } from './scene/TireSmoke'
 import { FloorDust } from './scene/FloorDust'
 import { Overlay } from './ui/Overlay'
-import { set, peek, viewLocked } from './state'
+import { set, peek, viewLocked, useStore } from './state'
 import * as audio from './audio'
 
 function LoadFlag() {
@@ -72,6 +72,8 @@ function useScrollDriver() {
 
 export function App() {
   useScrollDriver()
+  const rain = useStore(s => s.rain)
+  useEffect(() => { audio.setRain(rain) }, [rain])
 
   return (
     <>
