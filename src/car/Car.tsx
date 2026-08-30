@@ -250,6 +250,7 @@ export function Car(props: ComponentProps<'group'>) {
     }
   }, [paintMat, carbonMat, paint, f])
   const blueprint = view === 'wire'
+  const wireframeMatRef = useRef<THREE.MeshBasicMaterial>(null!)
   const underglowRef = useRef<THREE.RectAreaLight>(null!)
   const headlightsGroupRef = useRef<THREE.Group>(null!)
   const lightRef = useRef<THREE.Group>(null!)
@@ -436,6 +437,9 @@ export function Car(props: ComponentProps<'group'>) {
   const showShell = !blueprint || revealed.current < 3.0
 
   useFrame((state, dt) => {
+    if (wireframeMatRef.current) {
+      wireframeMatRef.current.opacity = 0.03 + Math.abs(Math.sin(state.clock.elapsedTime * 3.0)) * 0.04
+    }
     paintMat.envMapIntensity = 1.35 + Math.sin(state.clock.elapsedTime * 2.0) * 0.4
     const launching = peek().launching
     if (launching && groupRef.current) {
@@ -509,7 +513,7 @@ export function Car(props: ComponentProps<'group'>) {
           {study && <StudyMaterial view={view} />}
         </mesh>
         <mesh geometry={body} visible={!study}>
-          <meshBasicMaterial color="#00ffcc" wireframe transparent opacity={0.03} blending={THREE.AdditiveBlending} depthWrite={false} />
+          <meshBasicMaterial ref={wireframeMatRef} color="#00ffcc" wireframe transparent opacity={0.03} blending={THREE.AdditiveBlending} depthWrite={false} />
         </mesh>
 
         <mesh geometry={ducktail} castShadow={!study} ref={ducktailRef}>
