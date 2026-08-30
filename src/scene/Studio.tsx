@@ -199,6 +199,7 @@ function Streaks() {
       dummy.position.set(-x, y, z)
       // Since it's not rotated, plane is in XY. Make it scale in X.
       dummy.scale.set(s.len * (launching ? 15.0 : 1.0), 0.015, 1)
+      dummy.rotation.z = state.pointer.x * 0.1
       dummy.updateMatrix()
       ref.current.setMatrixAt(i, dummy.matrix)
     })
