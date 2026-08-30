@@ -170,6 +170,7 @@ function Boot() {
 }
 
 import { Cursor } from './Cursor'
+import { SplitText } from './SplitText'
 
 export function Overlay() {
   const chapter = useStore((s) => s.chapter)
@@ -205,8 +206,12 @@ export function Overlay() {
               <span className="micro copy__idx">
                 <i /> {c.index} — {c.label}
               </span>
-              <h2>{c.title}</h2>
-              <p>{c.body}</p>
+              <h2>
+                <SplitText delayOffset={0.1}>{c.title}</SplitText>
+              </h2>
+              <p>
+                <SplitText delayOffset={0.3}>{c.body}</SplitText>
+              </p>
               {c.note && (
                 <span className="cue">
                   {c.note}
