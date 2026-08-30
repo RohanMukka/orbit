@@ -31,8 +31,11 @@ function LoadFlag() {
 function useScrollDriver() {
   useEffect(() => {
     let raf = 0
+    let lastScroll = window.scrollY
     const read = () => {
       raf = 0
+      const vel = window.scrollY - lastScroll
+      lastScroll = window.scrollY
       const max = document.documentElement.scrollHeight - window.innerHeight
       const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0
       const chapter = Math.round(chapterFloat(progress))
@@ -47,7 +50,7 @@ function useScrollDriver() {
           ...(viewLocked ? null : { view: chapter === 1 ? ('wire' as const) : ('render' as const) }),
         })
       }
-      set({ progress, entered: progress > 0.01 || prev.entered })
+      set({ progress, entered: progress > 0.01 || prev.entered, scrollVelocity: vel })
       audio.setScroll(progress)
     }
     const onScroll = () => {

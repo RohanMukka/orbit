@@ -71,6 +71,7 @@ export interface Store {
   spin: boolean
   chapter: number
   progress: number
+  scrollVelocity: number
   loaded: boolean
   entered: boolean
   shape: Shape
@@ -94,6 +95,7 @@ let state: Store = {
   spin: true,
   chapter: 0,
   progress: 0,
+  scrollVelocity: 0,
   loaded: false,
   entered: false,
   shape: FLAT_SHAPE,

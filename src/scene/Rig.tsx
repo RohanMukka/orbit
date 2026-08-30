@@ -63,6 +63,7 @@ export function Rig() {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera
   const target = useRef(new THREE.Vector3(0, 0.68, 0))
   const pointer = useRef(new THREE.Vector2())
+  const bank = useRef(0)
 
   useFrame((state, dt) => {
     if (camOverride) {
@@ -165,6 +166,11 @@ export function Rig() {
 
     camera.position.lerp(nextPos, 1 - Math.pow(0.0015, dt))
     target.current.lerp(nextTarget, 1 - Math.pow(0.002, dt))
+
+    const targetBank = s.scrollVelocity * -0.002
+    bank.current = THREE.MathUtils.damp(bank.current, targetBank, 5, dt)
+    camera.up.set(Math.sin(bank.current), Math.cos(bank.current), 0).normalize()
+
     camera.lookAt(target.current)
 
     if (Math.abs(camera.fov - fov) > 0.01) {
