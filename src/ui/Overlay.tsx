@@ -252,6 +252,7 @@ export function Overlay() {
   const launching = useStore((s) => s.launching)
   const photoMode = useStore((s) => s.photoMode)
   const flash = useStore((s) => s.flash)
+  const scrollVelocity = useStore((s) => s.scrollVelocity)
 
   useEffect(() => {
     if (launching) document.body.classList.add('is-launching')
@@ -266,13 +267,16 @@ export function Overlay() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  const rotX = launching ? 2 : (scrollVelocity || 0) * -0.05;
+  const transformStr = `scale(${launching ? 1.03 : 1}) perspective(1000px) rotateX(${rotX}deg) translateY(${launching ? -1 : 0}%)`;
+
   return (
     <>
       <div style={{
         position: 'fixed', inset: 0, backgroundColor: 'white', zIndex: 10000, pointerEvents: 'none',
         opacity: flash ? 1 : 0, transition: flash ? 'none' : 'opacity 0.8s ease-out'
       }} />
-      <div className="ui-container" style={{ transition: 'transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1)', transform: launching ? 'scale(1.03) perspective(1000px) rotateX(2deg) translateY(-1%)' : 'scale(1) perspective(1000px) rotateX(0deg) translateY(0)' }}>
+      <div className="ui-container" style={{ transition: 'transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1)', transform: transformStr }}>
         <Cursor />
         <Boot />
         {!photoMode && (
