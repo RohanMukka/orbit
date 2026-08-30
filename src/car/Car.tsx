@@ -461,8 +461,9 @@ export function Car(props: ComponentProps<'group'>) {
 
     if (groupRef.current) {
       const targetPitch = launching ? 0.05 : 0.0
+      const targetRoll = launching ? 0.05 : (state.pointer.x * 0.02)
       groupRef.current.rotation.z = THREE.MathUtils.damp(groupRef.current.rotation.z, targetPitch, 4, dt)
-      groupRef.current.rotation.x = THREE.MathUtils.damp(groupRef.current.rotation.x, targetPitch, 4, dt)
+      groupRef.current.rotation.x = THREE.MathUtils.damp(groupRef.current.rotation.x, targetRoll, 4, dt)
     }
 
     if (underglowRef.current) {
