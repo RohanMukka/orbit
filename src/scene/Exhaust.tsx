@@ -93,11 +93,12 @@ function Shockwave() {
       const s = THREE.MathUtils.damp(meshRef.current.scale.x, 60, 10, dt)
       meshRef.current.scale.set(s, s, s)
       materialRef.current.opacity = THREE.MathUtils.damp(materialRef.current.opacity, 0, 5, dt)
+      meshRef.current.rotation.x += dt * 10.0
     }
   })
 
   return (
-    <mesh ref={meshRef}>
+    <mesh ref={meshRef} rotation={[0, Math.PI / 2, 0]}>
       <sphereGeometry args={[1, 32, 32]} />
       <meshBasicMaterial 
         ref={materialRef} 
