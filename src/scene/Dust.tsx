@@ -27,12 +27,15 @@ export function CyberDust({ count = 500 }) {
   useFrame((_, delta) => {
     if (!mesh.current) return
     
-    const launching = peek().launching
+    const s = peek()
+    const launching = s.launching
 
     particles.forEach((particle, i) => {
       particle.x += particle.vx * delta
       particle.y += particle.vy * delta
       particle.z += particle.vz * delta
+      
+      particle.z -= (s.scrollVelocity || 0) * delta * 0.1
 
       if (launching) {
         particle.z -= delta * 150.0
@@ -42,8 +45,8 @@ export function CyberDust({ count = 500 }) {
       if (particle.x < -5) particle.x = 5
       if (particle.y > 4) particle.y = 0
       if (particle.y < 0) particle.y = 4
-      if (particle.z > 5) particle.z = -5
-      if (particle.z < -5) particle.z = 5
+      if (particle.z < -20) particle.z += 40;
+      if (particle.z > 20) particle.z -= 40;
 
       dummy.position.set(particle.x, particle.y, particle.z)
       if (launching) {
