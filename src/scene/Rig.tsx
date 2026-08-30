@@ -143,7 +143,7 @@ export function Rig() {
     const swing = s.entered ? 1 : 0.35
     nextPos.x += Math.sin(time * 0.19) * 0.22 * swing + pointer.current.x * 0.75
     nextPos.y += Math.cos(time * 0.16) * 0.08 * swing - pointer.current.y * 0.35
-    nextPos.z += Math.cos(time * 0.13) * 0.22 * swing
+    nextPos.z += Math.cos(time * 0.13) * 0.22 * swing + (s.scrollVelocity || 0) * 0.003
 
     fov += Math.abs(s.scrollVelocity) * 0.1
 
