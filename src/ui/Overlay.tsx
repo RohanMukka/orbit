@@ -169,11 +169,14 @@ function Boot() {
   )
 }
 
+import { Cursor } from './Cursor'
+
 export function Overlay() {
   const chapter = useStore((s) => s.chapter)
 
   return (
     <>
+      <Cursor />
       <Boot />
       <div className="frame">
         <div className="frame__tl">
