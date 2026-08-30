@@ -422,9 +422,10 @@ button, a { cursor: none; }
   background: #05060a;
   display: grid;
   place-items: center;
-  transition: opacity 0.9s ease, visibility 0.9s;
+  clip-path: inset(0 0 0 0);
+  transition: opacity 1.2s ease, visibility 1.2s, clip-path 1.2s cubic-bezier(0.7, 0, 0.3, 1);
 }
-.boot--out { opacity: 0; visibility: hidden; }
+.boot--out { opacity: 0; visibility: hidden; clip-path: inset(0 0 100% 0); }
 .boot__inner { text-align: center; display: grid; gap: 20px; justify-items: center; }
 .boot__line { width: min(38vw, 260px); height: 1px; background: rgba(244, 241, 234, 0.14); overflow: hidden; }
 .boot__line i {
