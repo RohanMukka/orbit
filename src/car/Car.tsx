@@ -37,6 +37,7 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
   const rim = useStore((s) => s.rim)
   const view = useStore((s) => s.view)
   const group = useRef<THREE.Group>(null!)
+  const offsetRef = useRef<THREE.Group>(null!)
   const tire = useMemo(() => buildTire(width), [width])
   const rimGeo = useMemo(() => buildRim(width), [width])
   const brake = useMemo(() => buildBrake(), [])
@@ -50,10 +51,17 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
     if (s.launching) target = 100.0 // Burnout speeds
     group.current.userData.v = THREE.MathUtils.damp(group.current.userData.v ?? 0, target, 1.6, dt)
     group.current.rotation.z -= group.current.userData.v * dt
+
+    const targetExploded = s.exploded ? 1 : 0
+    offsetRef.current.userData.ex = THREE.MathUtils.damp(offsetRef.current.userData.ex ?? 0, targetExploded, 3, dt)
+    const ex = offsetRef.current.userData.ex
+    offsetRef.current.position.z = side * ex * 0.8
+    offsetRef.current.position.x = Math.sign(x) * ex * 0.6
   })
 
   return (
     <group position={[x, CAR.wheelRadius, z]} rotation={[0, front ? -0.06 * side : 0, 0]}>
+      <group ref={offsetRef}>
       <group ref={group} scale={[1, 1, side]}>
         <mesh geometry={tire} castShadow>
           {study ? (
@@ -80,6 +88,7 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
           <meshStandardMaterial {...clip} color="#ff4d1c" emissive="#ff2d00" emissiveIntensity={0.25} roughness={0.4} />
         </mesh>
       )}
+      </group>
     </group>
   )
 }
@@ -238,6 +247,15 @@ export function Car(props: ComponentProps<'group'>) {
   const groupRef = useRef<THREE.Group>(null!)
   const playedDrop = useRef(false)
 
+  const ducktailRef = useRef<THREE.Mesh>(null!)
+  const mirrorsRef = useRef<THREE.Mesh>(null!)
+  const archLipsRef = useRef<THREE.Mesh>(null!)
+  const splitterRef = useRef<THREE.Mesh>(null!)
+  const diffuserRef = useRef<THREE.Mesh>(null!)
+  const canopyTrimRef = useRef<THREE.Mesh>(null!)
+  const intakeTrimRef = useRef<THREE.Mesh>(null!)
+  const headCupsRef = useRef<THREE.Mesh>(null!)
+
   const revealed = useRef(0)
   const explodedLerp = useRef(0)
 
@@ -342,9 +360,42 @@ export function Car(props: ComponentProps<'group'>) {
       }
     }
 
+    if (ducktailRef.current) {
+      ducktailRef.current.position.y = ex * 0.4
+      ducktailRef.current.position.z = ex * 0.3
+    }
+    if (mirrorsRef.current) {
+      mirrorsRef.current.scale.x = 1 + ex * 0.4
+    }
+    if (archLipsRef.current) {
+      archLipsRef.current.position.y = ex * 0.2
+      archLipsRef.current.scale.x = 1 + ex * 0.05
+      archLipsRef.current.scale.z = 1 + ex * 0.05
+    }
+    if (splitterRef.current) {
+      splitterRef.current.position.x = ex * 0.6
+      splitterRef.current.position.y = ex * -0.1
+    }
+    if (diffuserRef.current) {
+      diffuserRef.current.position.x = ex * -0.6
+      diffuserRef.current.position.y = ex * -0.1
+    }
+    if (canopyTrimRef.current) {
+      canopyTrimRef.current.position.y = ex * 0.3
+    }
+    if (intakeTrimRef.current) {
+      intakeTrimRef.current.scale.z = 1 + ex * 0.1
+    }
+    if (headCupsRef.current) {
+      headCupsRef.current.position.x = ex * 0.4
+    }
+    if (lightRef.current && lightRef.current.children.length >= 2) {
+      lightRef.current.children[0].position.x = ex * 0.4
+      lightRef.current.children[1].position.x = ex * -0.4
+    }
+
     if (shellRef.current) {
-      shellRef.current.position.y = ex * -0.6
-      shellRef.current.scale.setScalar(1 - ex * 0.1)
+      shellRef.current.position.y = ex * 0.1
       
       if (st.view !== 'wire' && revealed.current >= 3.0) {
         // Ensure shell opacity is restored if we were in blueprint mode
@@ -401,13 +452,13 @@ export function Car(props: ComponentProps<'group'>) {
           )}
         </mesh>
 
-        <mesh geometry={ducktail} castShadow={!study}>
+        <mesh geometry={ducktail} castShadow={!study} ref={ducktailRef}>
           {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0c0d10" metalness={0.45} roughness={0.4} clearcoat={0.7} />}
         </mesh>
-        <mesh geometry={mirrors} castShadow={!study}>
+        <mesh geometry={mirrors} castShadow={!study} ref={mirrorsRef}>
           {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0c0d10" metalness={0.5} roughness={0.35} clearcoat={0.8} />}
         </mesh>
-        <mesh geometry={archLips} castShadow={!study}>
+        <mesh geometry={archLips} castShadow={!study} ref={archLipsRef}>
           {study ? (
             <StudyMaterial view={view} />
           ) : (
@@ -424,23 +475,23 @@ export function Car(props: ComponentProps<'group'>) {
       </mesh>
       {!study && (
         <>
-          <mesh geometry={canopyTrim}>
+          <mesh geometry={canopyTrim} ref={canopyTrimRef}>
             <meshStandardMaterial {...clip} color="#0a0b0e" metalness={0.6} roughness={0.32} />
           </mesh>
-          <mesh geometry={intakeTrim}>
+          <mesh geometry={intakeTrim} ref={intakeTrimRef}>
             <meshStandardMaterial {...clip} color="#0a0b0e" metalness={0.6} roughness={0.32} />
           </mesh>
         </>
       )}
-      <mesh geometry={splitter} visible={!blueprint} castShadow={!study}>
+      <mesh geometry={splitter} visible={!blueprint} castShadow={!study} ref={splitterRef}>
         {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
       </mesh>
-      <mesh geometry={diffuser} visible={!blueprint} castShadow={!study}>
+      <mesh geometry={diffuser} visible={!blueprint} castShadow={!study} ref={diffuserRef}>
         {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
       </mesh>
 
       {/* Housings sit outside the emissive group so they stay dark. */}
-      <mesh geometry={headCups} visible={!study && !blueprint}>
+      <mesh geometry={headCups} visible={!study && !blueprint} ref={headCupsRef}>
         <meshStandardMaterial {...clip} color="#050609" metalness={0.5} roughness={0.5} />
       </mesh>
 
