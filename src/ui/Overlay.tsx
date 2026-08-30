@@ -168,16 +168,47 @@ function SoundToggle() {
 function Boot() {
   const loaded = useStore((s) => s.loaded)
   const [hidden, setHidden] = useState(false)
+  const [text, setText] = useState('&#*@!')
+
+  useEffect(() => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()'
+    const target = 'O R B I T'
+    let iteration = 0
+    
+    const interval = setInterval(() => {
+      iteration += 1
+      setText(
+        target
+          .split('')
+          .map((letter, index) => {
+            if (letter === ' ') return ' '
+            if (index < iteration / 2) {
+              return target[index]
+            }
+            return chars[Math.floor(Math.random() * chars.length)]
+          })
+          .join('')
+      )
+
+      if (iteration >= target.length * 2) {
+        clearInterval(interval)
+      }
+    }, 50)
+
+    return () => clearInterval(interval)
+  }, [])
+
   useEffect(() => {
     if (!loaded) return
     const t = setTimeout(() => setHidden(true), 900)
     return () => clearTimeout(t)
   }, [loaded])
+  
   if (hidden) return null
   return (
     <div className={`boot ${loaded ? 'boot--out' : ''}`}>
       <div className="boot__inner">
-        <div className="mark mark--big">ORBIT</div>
+        <div className="mark mark--big">{text}</div>
         <div className="boot__line">
           <i />
         </div>
