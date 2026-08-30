@@ -37,7 +37,7 @@ export function Effects() {
       vignetteRef.current.offset = 0.28 + breath + shake
     }
     if (bloomRef.current) {
-      const targetBloom = launching ? 1.5 + (Math.random() * 0.5) : 0.5
+      const targetBloom = (launching ? 1.5 + (Math.random() * 0.5) : 0.5) + Math.abs(s.scrollVelocity || 0) * 0.005
       bloomRef.current.intensity = THREE.MathUtils.damp(bloomRef.current.intensity, targetBloom, dampFactor, dt)
     }
   })
