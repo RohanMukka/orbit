@@ -108,6 +108,20 @@ function Floor() {
   const exploded = useStore((s) => s.exploded)
   const showGrid = view === 'wire' || exploded
 
+  const gridRef = useRef<THREE.GridHelper>(null)
+
+  useFrame((_, dt) => {
+    const launching = peek().launching
+    if (launching && gridRef.current) {
+      gridRef.current.position.x -= dt * 60.0
+      if (gridRef.current.position.x < -1.0) {
+        gridRef.current.position.x = (gridRef.current.position.x % 1.0)
+      }
+    } else if (gridRef.current) {
+      gridRef.current.position.x = 0
+    }
+  })
+
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
@@ -128,7 +142,7 @@ function Floor() {
         />
       </mesh>
       {showGrid && (
-        <gridHelper args={[50, 50, '#1c4a5c', '#0f222b']} position={[0, 0.01, 0]} />
+        <gridHelper ref={gridRef} args={[100, 100, '#00e5ff', '#004a52']} position={[0, 0.01, 0]} />
       )}
     </group>
   )
