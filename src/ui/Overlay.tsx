@@ -265,133 +265,135 @@ export function Overlay() {
         position: 'fixed', inset: 0, backgroundColor: 'white', zIndex: 10000, pointerEvents: 'none',
         opacity: flash ? 1 : 0, transition: flash ? 'none' : 'opacity 0.8s ease-out'
       }} />
-      <Cursor />
-      <Boot />
-      {!photoMode && (
-        <>
-          <div className="frame">
-            <div className="frame__tl">
-              <span className="mark">ORBIT</span>
-              <span className="micro micro--dim">Concept 01 · generative hypercar</span>
-            </div>
-            <div className="frame__tr">
-              <span className="micro">
-                {CHAPTERS[chapter].index} <em>/ 05</em>
-              </span>
-              <span className="micro micro--dim">{CHAPTERS[chapter].label}</span>
-              <SoundToggle />
-            </div>
-          </div>
-
-          <Telemetry />
-          <Configurator />
-
-          <div className="scroll">
-            {CHAPTERS.map((c, i) => (
-              <section
-                key={c.index}
-                className={`chapter ${i % 2 === 1 ? 'chapter--right' : ''} ${i === chapter ? 'is-active' : ''}`}
-              >
-                <div className={`copy ${i % 2 === 1 ? 'copy--right' : ''}`}>
-                  <span className="micro copy__idx">
-                    <i /> {c.index} — {c.label}
-                  </span>
-                  <h2>
-                    <SplitText delayOffset={0.1}>{c.title}</SplitText>
-                  </h2>
-                  <p>
-                    <SplitText delayOffset={0.3}>{c.body}</SplitText>
-                  </p>
-                  {c.note && (
-                    <span className="cue">
-                      {c.note}
-                      <b />
-                    </span>
-                  )}
-                </div>
-              </section>
-            ))}
-            <footer className="outro">
-              <div className="outro__inner">
-                <h3>ORBIT</h3>
-                <div className="outro__grid">
-                  <div>
-                    <span className="micro">Built with</span>
-                    <p>three.js · react-three-fiber · postprocessing</p>
-                  </div>
-                  <div>
-                    <span className="micro">Assets downloaded</span>
-                    <p>none — 0 KB of geometry, 0 KB of textures, 0 KB of HDRI</p>
-                  </div>
-                  <div>
-                    <span className="micro">Everything you saw</span>
-                    <p>four curves, one lofted shell, six lights drawn in code</p>
-                  </div>
-                </div>
-                <div className="outro__foot">
-                  <button 
-                    className="ignite-btn"
-                    onClick={async () => {
-                      set({ launching: true })
-                      try {
-                        await audio.enable()
-                        audio.playLaunch()
-                      } catch (e) {
-                        console.error(e)
-                      }
-                    }}
-                  >
-                    IGNITE
-                  </button>
-                </div>
+      <div className="ui-container" style={{ transition: 'transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1)', transform: launching ? 'scale(1.03) perspective(1000px) rotateX(2deg) translateY(-1%)' : 'scale(1) perspective(1000px) rotateX(0deg) translateY(0)' }}>
+        <Cursor />
+        <Boot />
+        {!photoMode && (
+          <>
+            <div className="frame">
+              <div className="frame__tl">
+                <span className="mark">ORBIT</span>
+                <span className="micro micro--dim">Concept 01 · generative hypercar</span>
               </div>
-            </footer>
-          </div>
-        </>
-      )}
+              <div className="frame__tr">
+                <span className="micro">
+                  {CHAPTERS[chapter].index} <em>/ 05</em>
+                </span>
+                <span className="micro micro--dim">{CHAPTERS[chapter].label}</span>
+                <SoundToggle />
+              </div>
+            </div>
 
-      {photoMode && (
-        <>
-          <div style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '32px',
-            zIndex: 9999,
-            pointerEvents: 'none',
-            color: '#fff',
-            fontFamily: 'sans-serif',
-            textAlign: 'right',
-          }}>
-            <div style={{ fontSize: '24px', fontWeight: 600, letterSpacing: '4px', marginBottom: '4px' }}>ORBIT</div>
-            <div style={{ fontSize: '11px', opacity: 0.6, letterSpacing: '2px', textTransform: 'uppercase' }}>Hackathon 2026</div>
-          </div>
-          <button 
-            onClick={() => set({ photoMode: false })}
-            style={{
+            <Telemetry />
+            <Configurator />
+
+            <div className="scroll">
+              {CHAPTERS.map((c, i) => (
+                <section
+                  key={c.index}
+                  className={`chapter ${i % 2 === 1 ? 'chapter--right' : ''} ${i === chapter ? 'is-active' : ''}`}
+                >
+                  <div className={`copy ${i % 2 === 1 ? 'copy--right' : ''}`}>
+                    <span className="micro copy__idx">
+                      <i /> {c.index} — {c.label}
+                    </span>
+                    <h2>
+                      <SplitText delayOffset={0.1}>{c.title}</SplitText>
+                    </h2>
+                    <p>
+                      <SplitText delayOffset={0.3}>{c.body}</SplitText>
+                    </p>
+                    {c.note && (
+                      <span className="cue">
+                        {c.note}
+                        <b />
+                      </span>
+                    )}
+                  </div>
+                </section>
+              ))}
+              <footer className="outro">
+                <div className="outro__inner">
+                  <h3>ORBIT</h3>
+                  <div className="outro__grid">
+                    <div>
+                      <span className="micro">Built with</span>
+                      <p>three.js · react-three-fiber · postprocessing</p>
+                    </div>
+                    <div>
+                      <span className="micro">Assets downloaded</span>
+                      <p>none — 0 KB of geometry, 0 KB of textures, 0 KB of HDRI</p>
+                    </div>
+                    <div>
+                      <span className="micro">Everything you saw</span>
+                      <p>four curves, one lofted shell, six lights drawn in code</p>
+                    </div>
+                  </div>
+                  <div className="outro__foot">
+                    <button 
+                      className="ignite-btn"
+                      onClick={async () => {
+                        set({ launching: true })
+                        try {
+                          await audio.enable()
+                          audio.playLaunch()
+                        } catch (e) {
+                          console.error(e)
+                        }
+                      }}
+                    >
+                      IGNITE
+                    </button>
+                  </div>
+                </div>
+              </footer>
+            </div>
+          </>
+        )}
+
+        {photoMode && (
+          <>
+            <div style={{
               position: 'fixed',
-              top: '24px',
+              bottom: '24px',
               right: '32px',
               zIndex: 9999,
-              padding: '8px 16px',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: 'white',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              backdropFilter: 'blur(4px)',
+              pointerEvents: 'none',
+              color: '#fff',
               fontFamily: 'sans-serif',
-              fontSize: '12px',
-              textTransform: 'uppercase',
-              letterSpacing: '1px'
-            }}
-          >
-            Exit Photo Mode (ESC)
-          </button>
-        </>
-      )}
-      <Finale />
-      <CinematicLetterbox />
-      <Speedometer />
+              textAlign: 'right',
+            }}>
+              <div style={{ fontSize: '24px', fontWeight: 600, letterSpacing: '4px', marginBottom: '4px' }}>ORBIT</div>
+              <div style={{ fontSize: '11px', opacity: 0.6, letterSpacing: '2px', textTransform: 'uppercase' }}>Hackathon 2026</div>
+            </div>
+            <button 
+              onClick={() => set({ photoMode: false })}
+              style={{
+                position: 'fixed',
+                top: '24px',
+                right: '32px',
+                zIndex: 9999,
+                padding: '8px 16px',
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: 'white',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                backdropFilter: 'blur(4px)',
+                fontFamily: 'sans-serif',
+                fontSize: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '1px'
+              }}
+            >
+              Exit Photo Mode (ESC)
+            </button>
+          </>
+        )}
+        <Finale />
+        <CinematicLetterbox />
+        <Speedometer />
+      </div>
       <div style={{
         position: 'fixed',
         inset: 0,
