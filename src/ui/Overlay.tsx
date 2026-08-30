@@ -9,6 +9,7 @@ function Telemetry() {
   const progress = useStore((s) => s.progress)
   const paint = useStore((s) => s.paint)
   const chapter = useStore((s) => s.chapter)
+  const scrollVelocity = useStore((s) => s.scrollVelocity)
   return (
     <div className={`hud hud--bl ${progress > 0.9 ? 'hud--away' : ''}`}>
       <div className="hud__row">
@@ -30,6 +31,10 @@ function Telemetry() {
       <div className="hud__row">
         <span className="hud__k">Timeline</span>
         <span className="hud__v">{(progress * 100).toFixed(0).padStart(3, '0')}%</span>
+      </div>
+      <div className="hud__row">
+        <span className="hud__k">G-Force</span>
+        <span className="hud__v">{(1.0 + Math.abs(scrollVelocity) * 15).toFixed(2) + 'G'}</span>
       </div>
       <div className="hud__bar">
         <i style={{ transform: `scaleX(${progress})` }} />
