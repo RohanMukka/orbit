@@ -158,6 +158,7 @@ import { CAR, shapedProfiles } from '../car/body'
 function Streaks() {
   const night = useStore((s) => s.night)
   const ref = useRef<THREE.InstancedMesh>(null!)
+  const streakMatRef = useRef<THREE.MeshBasicMaterial>(null!)
   const seeds = useMemo(
     () =>
       Array.from({ length: 150 }, () => ({
@@ -204,13 +205,20 @@ function Streaks() {
       ref.current.setMatrixAt(i, dummy.matrix)
     })
     ref.current.instanceMatrix.needsUpdate = true
+    if (streakMatRef.current) {
+      if (launching) {
+        streakMatRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+      } else {
+        streakMatRef.current.color.set('#9db4ff')
+      }
+    }
   })
 
   if (!night) return null
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, seeds.length]}>
       <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial color="#9db4ff" transparent opacity={0.45} toneMapped={false} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide} />
+      <meshBasicMaterial ref={streakMatRef} color="#9db4ff" transparent opacity={0.45} toneMapped={false} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide} />
     </instancedMesh>
   )
 }
