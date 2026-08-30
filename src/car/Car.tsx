@@ -57,6 +57,10 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
     const ex = offsetRef.current.userData.ex
     offsetRef.current.position.z = side * ex * 0.8
     offsetRef.current.position.x = Math.sign(x) * ex * 0.6
+
+    // Hovercraft flight mode fold
+    const targetFold = s.launching ? (-Math.PI / 2) * side : 0
+    offsetRef.current.rotation.x = THREE.MathUtils.damp(offsetRef.current.rotation.x, targetFold, 5, dt)
   })
 
   return (
