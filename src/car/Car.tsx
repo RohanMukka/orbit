@@ -438,6 +438,9 @@ export function Car(props: ComponentProps<'group'>) {
         <mesh geometry={dragging ? draft : body} castShadow={!study} receiveShadow={!study} material={study ? undefined : [paintMat, glassMat, carbonMat]}>
           {study && <StudyMaterial view={view} />}
         </mesh>
+        <mesh geometry={body} visible={!study}>
+          <meshBasicMaterial color="#00ffcc" wireframe transparent opacity={0.03} blending={THREE.AdditiveBlending} depthWrite={false} />
+        </mesh>
 
         <mesh geometry={ducktail} castShadow={!study} ref={ducktailRef}>
           {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0c0d10" metalness={0.45} roughness={0.4} clearcoat={0.7} />}
