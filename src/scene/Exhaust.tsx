@@ -3,6 +3,62 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { useStore } from '../state'
 
+function ThrusterFlames() {
+  const mesh1 = useRef<THREE.Mesh>(null!)
+  const mesh2 = useRef<THREE.Mesh>(null!)
+  const launching = useStore(s => s.launching)
+  const ltRef = useRef(0)
+
+  useFrame((_, dt) => {
+    if (!launching) {
+      ltRef.current = 0
+      if (mesh1.current) mesh1.current.visible = false
+      if (mesh2.current) mesh2.current.visible = false
+      return
+    }
+
+    ltRef.current += dt
+    const lt = ltRef.current
+
+    if (lt <= 1.0) {
+      if (mesh1.current) mesh1.current.visible = false
+      if (mesh2.current) mesh2.current.visible = false
+      return
+    }
+
+    if (!mesh1.current || !mesh2.current) return
+
+    mesh1.current.visible = true
+    mesh2.current.visible = true
+
+    const drive = Math.pow(lt - 1.0, 3) * 60.0
+    
+    const x = drive - 2.4
+    mesh1.current.position.set(x, 0.5, 0.6)
+    mesh2.current.position.set(x, 0.5, -0.6)
+
+    const s1x = 0.8 + Math.random() * 0.4
+    const s1y = 0.8 + Math.random() * 0.4
+    const s2x = 0.8 + Math.random() * 0.4
+    const s2y = 0.8 + Math.random() * 0.4
+    mesh1.current.scale.set(s1x, s1y, 1)
+    mesh2.current.scale.set(s2x, s2y, 1)
+  })
+
+  return (
+    <group>
+      <mesh ref={mesh1} rotation={[0, 0, -Math.PI / 2]} visible={false}>
+        <coneGeometry args={[0.2, 1.5, 16]} />
+        <meshBasicMaterial color="#00ffff" transparent opacity={0.8} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </mesh>
+      <mesh ref={mesh2} rotation={[0, 0, -Math.PI / 2]} visible={false}>
+        <coneGeometry args={[0.2, 1.5, 16]} />
+        <meshBasicMaterial color="#00ffff" transparent opacity={0.8} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </mesh>
+    </group>
+  )
+}
+
 export function Exhaust() {
   const launching = useStore(s => s.launching)
   const meshRef = useRef<THREE.InstancedMesh>(null!)
@@ -131,18 +187,21 @@ export function Exhaust() {
   if (!launching) return null
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
-      <dodecahedronGeometry args={[0.3, 0]}>
-        <instancedBufferAttribute attach="attributes-color" args={[colorArray, 3]} />
-      </dodecahedronGeometry>
-      <meshBasicMaterial 
-        vertexColors 
-        toneMapped={false} 
-        transparent 
-        opacity={0.8} 
-        blending={THREE.AdditiveBlending} 
-        depthWrite={false} 
-      />
-    </instancedMesh>
+    <group>
+      <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+        <dodecahedronGeometry args={[0.3, 0]}>
+          <instancedBufferAttribute attach="attributes-color" args={[colorArray, 3]} />
+        </dodecahedronGeometry>
+        <meshBasicMaterial 
+          vertexColors 
+          toneMapped={false} 
+          transparent 
+          opacity={0.8} 
+          blending={THREE.AdditiveBlending} 
+          depthWrite={false} 
+        />
+      </instancedMesh>
+      <ThrusterFlames />
+    </group>
   )
 }
