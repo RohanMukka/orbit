@@ -146,12 +146,17 @@ export function Rig() {
 
     if (s.launching) {
       fov = 95
-      // Violent high-frequency camera shake for engine rev
-      const shakeAmt = 0.15
+    }
+
+    if (s.launching || s.glitch) {
+      // Violent high-frequency camera shake for engine rev or sharp tactile bump
+      const shakeAmt = s.launching ? 0.15 : 0.05
       nextPos.x += (Math.random() - 0.5) * shakeAmt
       nextPos.y += (Math.random() - 0.5) * shakeAmt
       nextPos.z += (Math.random() - 0.5) * shakeAmt
-      
+    }
+
+    if (s.launching) {
       // Rig-specific launch timer attached to camera rather than target, or just a state block var.
       // We can use camera.userData safely since camera is an Object3D.
       camera.userData.lt = (camera.userData.lt || 0) + dt
