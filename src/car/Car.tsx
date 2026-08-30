@@ -427,7 +427,11 @@ export function Car(props: ComponentProps<'group'>) {
       if (revealed.current < 3.0) {
         headlightsGroupRef.current.visible = Math.random() > 0.5;
       } else {
-        headlightsGroupRef.current.visible = true;
+        if (peek().launching) {
+          headlightsGroupRef.current.visible = Math.random() > 0.1;
+        } else {
+          headlightsGroupRef.current.visible = true;
+        }
       }
     }
   })
