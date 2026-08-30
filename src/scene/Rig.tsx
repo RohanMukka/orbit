@@ -107,7 +107,8 @@ export function Rig() {
     // the car is small enough there already.
     if (s.exploded) {
       fov = 42
-      nextPos.set(-4.5, 2.4, 5.5)
+      const time = state.clock.elapsedTime
+      nextPos.set(Math.cos(time * 0.2) * 7.5, 2.4 + Math.sin(time * 0.1) * 0.5, Math.sin(time * 0.2) * 7.5)
       nextTarget.set(0, 0.6, 0)
       offset = 0
     }

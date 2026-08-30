@@ -104,24 +104,33 @@ function StudioRig() {
 
 function Floor() {
   const night = useStore((s) => s.night)
+  const view = useStore((s) => s.view)
+  const exploded = useStore((s) => s.exploded)
+  const showGrid = view === 'wire' || exploded
+
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-      <circleGeometry args={[26, 96]} />
-      <MeshReflectorMaterial
-        resolution={512}
-        mixBlur={1.1}
-        mixStrength={22}
-        blur={[280, 90]}
-        mirror={night ? 0.75 : 0.55}
-        depthScale={1.1}
-        minDepthThreshold={0.35}
-        maxDepthThreshold={1.4}
-        depthToBlurRatioBias={0.3}
-        color="#08090c"
-        metalness={0.78}
-        roughness={0.55}
-      />
-    </mesh>
+    <group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+        <circleGeometry args={[26, 96]} />
+        <MeshReflectorMaterial
+          resolution={512}
+          mixBlur={1.1}
+          mixStrength={22}
+          blur={[280, 90]}
+          mirror={night ? 0.75 : 0.55}
+          depthScale={1.1}
+          minDepthThreshold={0.35}
+          maxDepthThreshold={1.4}
+          depthToBlurRatioBias={0.3}
+          color="#08090c"
+          metalness={0.78}
+          roughness={0.55}
+        />
+      </mesh>
+      {showGrid && (
+        <gridHelper args={[50, 50, '#1c4a5c', '#0f222b']} position={[0, 0.01, 0]} />
+      )}
+    </group>
   )
 }
 
