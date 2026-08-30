@@ -272,7 +272,59 @@ export function Overlay() {
       </div>
       <Finale />
       <CinematicLetterbox />
+      <Speedometer />
     </>
+  )
+}
+
+function Speedometer() {
+  const launching = useStore((s) => s.launching)
+  const [speed, setSpeed] = useState(0)
+
+  useEffect(() => {
+    if (!launching) {
+      setSpeed(0)
+      return
+    }
+
+    let start = Date.now()
+    let req: number
+
+    const update = () => {
+      const now = Date.now()
+      const elapsed = (now - start) / 1000
+      
+      const currentSpeed = Math.floor(Math.pow(elapsed * 2, 3) * 10)
+      setSpeed(Math.min(9999, currentSpeed))
+      
+      req = requestAnimationFrame(update)
+    }
+    
+    req = requestAnimationFrame(update)
+    return () => cancelAnimationFrame(req)
+  }, [launching])
+
+  if (!launching) return null
+
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: '15%',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      zIndex: 10000,
+      color: '#ff4d1c',
+      fontFamily: 'monospace, sans-serif',
+      fontSize: '8vw',
+      fontWeight: 'bold',
+      textShadow: '0 0 20px #ff4d1c, 0 0 40px #ff4d1c',
+      pointerEvents: 'none',
+      textAlign: 'center',
+      lineHeight: 1
+    }}>
+      {speed.toString().padStart(4, '0')}
+      <div style={{ fontSize: '1.5vw', letterSpacing: '0.2em', opacity: 0.8, marginTop: '10px' }}>KM/H</div>
+    </div>
   )
 }
 
