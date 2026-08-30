@@ -3,6 +3,55 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { useStore } from '../state'
 
+function DebrisField() {
+  const launching = useStore(s => s.launching)
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const count = 200
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+
+  const data = useMemo(() => {
+    const arr = []
+    for (let i = 0; i < count; i++) {
+      arr.push({
+        x: 50 + Math.random() * 100,
+        y: -15 + Math.random() * 30,
+        z: -15 + Math.random() * 30,
+        rx: (Math.random() - 0.5) * 5,
+        ry: (Math.random() - 0.5) * 5,
+        rz: (Math.random() - 0.5) * 5
+      })
+    }
+    return arr
+  }, [count])
+
+  useFrame((_, dt) => {
+    if (!launching || !meshRef.current) return
+    
+    data.forEach((d, i) => {
+      d.x -= dt * 150.0
+      if (d.x < -20) {
+        d.x = 150
+        d.y = -15 + Math.random() * 30
+        d.z = -15 + Math.random() * 30
+      }
+      dummy.position.set(d.x, d.y, d.z)
+      dummy.rotation.x += d.rx * dt
+      dummy.rotation.y += d.ry * dt
+      dummy.rotation.z += d.rz * dt
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    })
+    meshRef.current.instanceMatrix.needsUpdate = true
+  })
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} visible={launching}>
+      <dodecahedronGeometry args={[0.5, 0]} />
+      <meshStandardMaterial color="#0c0d10" roughness={0.8} />
+    </instancedMesh>
+  )
+}
+
 export function Hyperspace() {
   const launching = useStore(s => s.launching)
   const meshRef = useRef<THREE.InstancedMesh>(null!)
@@ -78,11 +127,14 @@ export function Hyperspace() {
   if (!launching) return null
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
-      <boxGeometry args={[1, 1, 1]}>
-        <instancedBufferAttribute attach="attributes-color" args={[colorArray, 3]} />
-      </boxGeometry>
-      <meshBasicMaterial vertexColors toneMapped={false} transparent opacity={0.7} blending={THREE.AdditiveBlending} depthWrite={false} />
-    </instancedMesh>
+    <group>
+      <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+        <boxGeometry args={[1, 1, 1]}>
+          <instancedBufferAttribute attach="attributes-color" args={[colorArray, 3]} />
+        </boxGeometry>
+        <meshBasicMaterial vertexColors toneMapped={false} transparent opacity={0.7} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </instancedMesh>
+      <DebrisField />
+    </group>
   )
 }
