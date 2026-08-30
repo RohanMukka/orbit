@@ -6,6 +6,7 @@ import { Car } from './car/Car'
 import { Studio } from './scene/Studio'
 import { Rig, SHOTS, chapterFloat } from './scene/Rig'
 import { Effects } from './scene/Effects'
+import { Hyperspace } from './scene/Hyperspace'
 import { Overlay } from './ui/Overlay'
 import { set, peek, viewLocked } from './state'
 import * as audio from './audio'
@@ -82,6 +83,7 @@ export function App() {
             <Studio />
             <Car />
             <Effects />
+            <Hyperspace />
             <Preload all />
           </Suspense>
           <Rig />

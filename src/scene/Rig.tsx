@@ -148,6 +148,18 @@ export function Rig() {
       nextPos.x += (Math.random() - 0.5) * shakeAmt
       nextPos.y += (Math.random() - 0.5) * shakeAmt
       nextPos.z += (Math.random() - 0.5) * shakeAmt
+      
+      // Rig-specific launch timer attached to camera rather than target, or just a state block var.
+      // We can use camera.userData safely since camera is an Object3D.
+      camera.userData.lt = (camera.userData.lt || 0) + dt
+      const rigLT = camera.userData.lt
+      if (rigLT > 1.0) {
+        const drive = Math.pow(rigLT - 1.0, 3) * 60.0
+        nextPos.x += drive
+        nextTarget.x += drive
+      }
+    } else {
+      camera.userData.lt = 0
     }
 
     camera.position.lerp(nextPos, 1 - Math.pow(0.0015, dt))
