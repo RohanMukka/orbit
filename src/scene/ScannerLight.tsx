@@ -5,6 +5,7 @@ import * as THREE from 'three'
 
 export function ScannerLight() {
   const paintId = useStore((s) => s.paint.id)
+  const glitch = useStore((s) => s.glitch)
   const timer = useRef(1.5)
   const isFirstRender = useRef(true)
   const lightRef = useRef<THREE.RectAreaLight>(null)
@@ -15,7 +16,7 @@ export function ScannerLight() {
       return
     }
     timer.current = 0
-  }, [paintId])
+  }, [paintId, glitch])
 
   useFrame((_, delta) => {
     if (!lightRef.current) return
