@@ -145,6 +145,7 @@ export function Rig() {
     nextPos.z += Math.cos(time * 0.13) * 0.22 * swing
 
     if (s.launching) {
+      fov = 95
       // Violent high-frequency camera shake for engine rev
       const shakeAmt = 0.15
       nextPos.x += (Math.random() - 0.5) * shakeAmt
