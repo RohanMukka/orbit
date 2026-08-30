@@ -189,46 +189,16 @@ export function Car(props: ComponentProps<'group'>) {
 
   const glassMat = useMemo(() => {
     const m = new THREE.MeshPhysicalMaterial({
-      color: '#020305',
-      metalness: 0.1,
+      color: '#010203',
+      metalness: 0.9,
       roughness: 0.05,
-      transmission: 1.0,
-      thickness: 0.5,
+      transmission: 0.0,
       ior: 1.52,
       clearcoat: 1,
-      clearcoatRoughness: 0.02,
-      envMapIntensity: 2.0,
-      transparent: true,
+      clearcoatRoughness: 0.0,
+      envMapIntensity: 2.5,
+      transparent: false,
     })
-    m.defines = { ...(m.defines ?? {}), USE_UV: '' }
-    m.onBeforeCompile = (shader) => {
-      shader.fragmentShader = `
-        float hashGlass(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
-        float noiseGlass(vec2 p) {
-            vec2 i = floor(p);
-            vec2 f = fract(p);
-            vec2 u = f*f*(3.0-2.0*f);
-            return mix(mix(hashGlass(i + vec2(0.0,0.0)), hashGlass(i + vec2(1.0,0.0)), u.x),
-                       mix(hashGlass(i + vec2(0.0,1.0)), hashGlass(i + vec2(1.0,1.0)), u.x), u.y);
-        }
-      ` + shader.fragmentShader;
-      
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <color_fragment>',
-        `#include <color_fragment>
-        {
-          // Faux interior depth mapping
-          vec3 viewDir = normalize(vViewPosition);
-          vec2 interiorUV = vUv + viewDir.xy * 0.1;
-          
-          float seats = noiseGlass(interiorUV * 15.0);
-          float dash = noiseGlass(interiorUV * 25.0 + vec2(5.0));
-          
-          float depth = smoothstep(0.4, 0.6, seats) * 0.15 + smoothstep(0.5, 0.9, dash) * 0.2;
-          diffuseColor.rgb += vec3(depth);
-        }`
-      )
-    }
     return m
   }, [])
 
