@@ -5,6 +5,7 @@ import { peek } from '../state'
 
 export function CyberDust({ count = 500 }) {
   const mesh = useRef<THREE.InstancedMesh>(null)
+  const matRef = useRef<THREE.MeshBasicMaterial>(null)
   
   const particles = useMemo(() => {
     const temp = []
@@ -24,7 +25,7 @@ export function CyberDust({ count = 500 }) {
 
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (!mesh.current) return
     
     const s = peek()
@@ -59,12 +60,20 @@ export function CyberDust({ count = 500 }) {
     })
     
     mesh.current.instanceMatrix.needsUpdate = true
+
+    if (matRef.current) {
+      if (launching) {
+        matRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+      } else {
+        matRef.current.color.set('#ffffff')
+      }
+    }
   })
 
   return (
     <instancedMesh ref={mesh} args={[undefined as any, undefined as any, count]}>
       <sphereGeometry args={[0.005, 8, 8]} />
-      <meshBasicMaterial color="#00ffcc" transparent opacity={0.3} depthWrite={false} />
+      <meshBasicMaterial ref={matRef} color="#ffffff" transparent opacity={0.3} depthWrite={false} />
     </instancedMesh>
   )
 }
