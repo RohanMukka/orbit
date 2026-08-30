@@ -246,6 +246,7 @@ export function Car(props: ComponentProps<'group'>) {
     }
   }, [paintMat, carbonMat, paint, f])
   const blueprint = view === 'wire'
+  const underglowRef = useRef<THREE.RectAreaLight>(null!)
   const lightRef = useRef<THREE.Group>(null!)
   const shellRef = useRef<THREE.Group>(null!)
   const blueprintRef = useRef<THREE.Group>(null!)
@@ -421,7 +422,7 @@ export function Car(props: ComponentProps<'group'>) {
   const showBlueprint = blueprint || revealed.current < 3.0
   const showShell = !blueprint || revealed.current < 3.0
 
-  useFrame(() => {
+  useFrame((state, dt) => {
     const launching = peek().launching
     if (launching && groupRef.current) {
       groupRef.current.position.y = (Math.random() - 0.5) * 0.04
@@ -429,6 +430,18 @@ export function Car(props: ComponentProps<'group'>) {
     } else if (groupRef.current) {
       groupRef.current.position.y = 0
       groupRef.current.position.z = 0
+    }
+
+    if (underglowRef.current) {
+      const targetIntensity = launching
+        ? Math.random() * 50.0 + 10.0
+        : Math.abs(Math.sin(state.clock.elapsedTime * 4.0)) * 5.0 + 5.0
+      underglowRef.current.intensity = THREE.MathUtils.damp(
+        underglowRef.current.intensity,
+        targetIntensity,
+        10,
+        dt
+      )
     }
   })
 
@@ -439,6 +452,7 @@ export function Car(props: ComponentProps<'group'>) {
       <pointLight position={[-2.8, 0.6, 1.0]} intensity={night ? 15 : 0} distance={10} color="#ff0000" />
       <pointLight position={[-2.8, 0.6, -1.0]} intensity={night ? 15 : 0} distance={10} color="#ff0000" />
       <rectAreaLight
+        ref={underglowRef}
         position={[0, 0.1, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
         width={2.0}
