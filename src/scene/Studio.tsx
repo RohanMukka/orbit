@@ -167,13 +167,14 @@ function Streaks() {
   )
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
-  useFrame((state) => {
+  useFrame((_, dt) => {
     if (!ref.current) return
-    const t = state.clock.elapsedTime
+    const launching = peek().launching
     const P = shapedProfiles(peek().shape)
 
     seeds.forEach((s, i) => {
-      const x = ((s.offset + t * s.speed) % 20) - 10
+      s.offset += s.speed * (launching ? 15.0 : 1.0) * dt
+      const x = (s.offset % 20) - 10
       let y = s.y
       let z = s.z
 
