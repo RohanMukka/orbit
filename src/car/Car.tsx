@@ -257,9 +257,9 @@ export function Car(props: ComponentProps<'group'>) {
       const shellOpacity = t < 2 ? 0 : Math.min(1, t - 2)
 
       if (blueprintRef.current) {
-        ;(blueprintRef.current.children[0] as THREE.LineSegments).material.opacity = ringsOpacity * 0.55
-        ;(blueprintRef.current.children[1] as THREE.LineSegments).material.opacity = ringsOpacity * 0.32
-        ;(blueprintRef.current.children[2] as THREE.LineSegments).material.opacity = curvesOpacity
+        ;((blueprintRef.current.children[0] as THREE.LineSegments).material as THREE.Material).opacity = ringsOpacity * 0.55
+        ;((blueprintRef.current.children[1] as THREE.LineSegments).material as THREE.Material).opacity = ringsOpacity * 0.32
+        ;((blueprintRef.current.children[2] as THREE.LineSegments).material as THREE.Material).opacity = curvesOpacity
       }
 
       if (shellRef.current) {
@@ -390,6 +390,7 @@ export function Car(props: ComponentProps<'group'>) {
         {AXLES.map((a) =>
           [1, -1].map((s) => <Wheel key={`${a.x}-${s}`} x={a.x} z={s * a.track} width={a.width} front={a.front} />)
         )}
+      </group>
       </group>
     </group>
   )
