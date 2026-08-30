@@ -255,6 +255,7 @@ export function Car(props: ComponentProps<'group'>) {
     }
   }, [paintMat, carbonMat, paint, f])
   const blueprint = view === 'wire'
+  const headMatRef = useRef<THREE.MeshStandardMaterial>(null!)
   const wireframeMatRef = useRef<THREE.MeshBasicMaterial>(null!)
   const underglowRef = useRef<THREE.RectAreaLight>(null!)
   const headlightsGroupRef = useRef<THREE.Group>(null!)
@@ -433,9 +434,12 @@ export function Car(props: ComponentProps<'group'>) {
         headlightsGroupRef.current.visible = Math.random() > 0.5;
       } else {
         if (peek().launching) {
-          headlightsGroupRef.current.visible = Math.random() > 0.1;
+          const on = Math.random() > 0.1;
+          headlightsGroupRef.current.visible = on;
+          if (headMatRef.current) headMatRef.current.emissiveIntensity = on ? (st.night ? 6.0 : 0.5) : 0;
         } else {
           headlightsGroupRef.current.visible = true;
+          if (headMatRef.current) headMatRef.current.emissiveIntensity = st.night ? 6.0 : 0.5;
         }
       }
     }
@@ -577,7 +581,7 @@ export function Car(props: ComponentProps<'group'>) {
 
       <group ref={lightRef} visible={!study}>
         <mesh geometry={head}>
-          <meshStandardMaterial {...clip} color="#ffffff" emissive="#e6efff" emissiveIntensity={night ? 6.0 : 0.5} toneMapped={false} />
+          <meshStandardMaterial {...clip} ref={headMatRef} color="#ffffff" emissive="#e6efff" emissiveIntensity={night ? 6.0 : 0.5} toneMapped={false} />
         </mesh>
         <mesh geometry={tail}>
           <meshStandardMaterial {...clip} color="#ff2a12" emissive="#ff2a12" emissiveIntensity={night ? 4.0 : 0.5} toneMapped={false} />
