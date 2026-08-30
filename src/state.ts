@@ -19,11 +19,22 @@ export const PAINTS: Paint[] = [
   { id: 'cyber', name: 'Cyber Neon', code: 'OR-07', color: '#00ffcc', flake: '#ff00ff', finish: 'chrome' },
 ]
 
-export const RIMS = [
+export interface Rim {
+  id: string
+  name: string
+  color: string
+  metal: number
+  rough: number
+  emissive?: string
+  emissiveIntensity?: number
+}
+
+export const RIMS: Rim[] = [
   { id: 'graphite', name: 'Graphite', color: '#2a2c31', metal: 1, rough: 0.35 },
   { id: 'polished', name: 'Polished', color: '#cfd4da', metal: 1, rough: 0.09 },
   { id: 'bronze', name: 'Bronze', color: '#8a5a24', metal: 1, rough: 0.28 },
-] as const
+  { id: 'neon', name: 'Tron Neon', color: '#000000', metal: 0.1, rough: 0.5, emissive: '#00ffff', emissiveIntensity: 4.0 },
+]
 
 /**
  * Design mode. The visitor drags the actual silhouette curves and the body is
@@ -55,7 +66,7 @@ export const VIEWS: { id: ViewMode; name: string }[] = [
 export interface Store {
   view: ViewMode
   paint: Paint
-  rim: (typeof RIMS)[number]
+  rim: Rim
   night: boolean
   spin: boolean
   chapter: number
