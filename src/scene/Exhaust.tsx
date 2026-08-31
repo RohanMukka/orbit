@@ -54,12 +54,17 @@ function ThrusterFlames() {
 
     const drive = Math.pow(lt - 1.0, 3) * 60.0
     
+    const t = state.clock.elapsedTime
+    
+    const overload = Math.max(0, peek().scrollVelocity || 0)
+    const rattleY = overload > 30 ? Math.sin(t * 150) * 0.05 : 0
+    const rattleZ = overload > 30 ? Math.cos(t * 180) * 0.02 : 0
+    
     const x = drive - 2.4
-    mesh1.current.position.set(x, 0.5, 0.6)
-    mesh2.current.position.set(x, 0.5, -0.6)
+    mesh1.current.position.set(x, 0.5 + rattleY, 0.6 + rattleZ)
+    mesh2.current.position.set(x, 0.5 + rattleY, -0.6 - rattleZ)
 
     const velSurge = 1.0 + Math.max(0, peek().scrollVelocity || 0) * 0.05 // Only surge on acceleration
-    const t = state.clock.elapsedTime
     
     // X scale is width, Y scale is length due to cone rotation
     const s1x = (0.8 + Math.sin(t * 80) * 0.2 + Math.cos(t * 43) * 0.2) * velSurge
