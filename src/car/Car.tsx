@@ -450,7 +450,7 @@ export function Car(props: ComponentProps<'group'>) {
         headlightsGroupRef.current.visible = Math.sin(Date.now() * 0.02) > 0;
       } else {
         const scrollVel = Math.abs(peek().scrollVelocity || 0)
-        const strainFlicker = scrollVel > 20 ? Math.sin(state.clock.elapsedTime * 150) * Math.min(2.0, scrollVel * 0.02) : 0
+        const strainFlicker = scrollVel > 20 ? Math.sin(_.clock.elapsedTime * 150) * Math.min(2.0, scrollVel * 0.02) : 0
         if (peek().launching) {
           const pulse = Math.sin(Date.now() * 0.05)
           headlightsGroupRef.current.visible = true;
