@@ -252,6 +252,7 @@ export function Overlay() {
   const launching = useStore((s) => s.launching)
   const photoMode = useStore((s) => s.photoMode)
   const flash = useStore((s) => s.flash)
+  const scrollVelocity = useStore((s) => s.scrollVelocity)
 
   useEffect(() => {
     if (launching) document.body.classList.add('is-launching')
