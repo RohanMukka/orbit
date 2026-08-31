@@ -456,11 +456,13 @@ export function Car(props: ComponentProps<'group'>) {
     paintMat.envMapIntensity = 1.35 + Math.sin(state.clock.elapsedTime * 2.0) * 0.4 + Math.abs(peek().scrollVelocity || 0) * 0.02
     glassMat.envMapIntensity = 2.0 + Math.sin(state.clock.elapsedTime * 2.0) * 0.2 + Math.abs(peek().scrollVelocity || 0) * 0.05
     if (launching && groupRef.current) {
-      groupRef.current.position.y = (Math.random() - 0.5) * 0.04
-      groupRef.current.position.z = (Math.random() - 0.5) * 0.02
+      const rumble = Math.sin(state.clock.elapsedTime * 60) * 0.015
+      const velShake = Math.abs(peek().scrollVelocity || 0) * 0.0001
+      groupRef.current.position.y = rumble + velShake
+      groupRef.current.position.z = Math.cos(state.clock.elapsedTime * 73) * 0.01
     } else if (groupRef.current) {
-      groupRef.current.position.y = 0
-      groupRef.current.position.z = 0
+      groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, 0, 0.1)
+      groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, 0, 0.1)
     }
 
     if (groupRef.current) {

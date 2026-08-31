@@ -33,11 +33,12 @@ export function Effects() {
       const targetDarkness = Math.min(1.5, (launching ? 1.15 : 0.85) + Math.abs(s.scrollVelocity || 0) * 0.005)
       vignetteRef.current.darkness = THREE.MathUtils.damp(vignetteRef.current.darkness, targetDarkness, dampFactor, dt)
       const breath = Math.sin(state.clock.elapsedTime * 2) * 0.04
-      const shake = launching ? (Math.random() - 0.5) * 0.05 : 0
-      vignetteRef.current.offset = 0.28 + breath + shake
+      const shake = launching ? Math.sin(state.clock.elapsedTime * 45) * 0.03 : 0
+      vignetteRef.current.offset = THREE.MathUtils.damp(vignetteRef.current.offset, 0.28 + breath + shake, 10, dt)
     }
     if (bloomRef.current) {
-      const targetBloom = (launching ? 1.5 + (Math.random() * 0.5) : 0.5) + Math.abs(s.scrollVelocity || 0) * 0.005
+      const surge = launching ? 1.2 + Math.sin(state.clock.elapsedTime * 20) * 0.3 : 0.5
+      const targetBloom = surge + Math.abs(s.scrollVelocity || 0) * 0.002
       bloomRef.current.intensity = THREE.MathUtils.damp(bloomRef.current.intensity, targetBloom, dampFactor, dt)
     }
   })

@@ -148,16 +148,16 @@ export function Rig() {
     fov += Math.abs(s.scrollVelocity) * 0.1
 
     if (s.launching) {
-      fov = 95 + (camera.userData.lt || 0) * 15.0
-      fov = Math.min(130, fov)
+      const targetFov = 95 + (camera.userData.lt || 0) * 15.0
+      fov = THREE.MathUtils.damp(fov, Math.min(130, targetFov), 3, dt)
     }
 
     if (s.launching || s.glitch) {
-      // Violent high-frequency camera shake for engine rev or sharp tactile bump
-      const shakeAmt = (s.launching ? 0.15 : 0.05) + Math.abs(s.scrollVelocity || 0) * 0.002
-      nextPos.x += (Math.random() - 0.5) * shakeAmt
-      nextPos.y += (Math.random() - 0.5) * shakeAmt
-      nextPos.z += (Math.random() - 0.5) * shakeAmt
+      // Smooth high-frequency camera shake for elegant visceral vibration
+      const shakeAmt = (s.launching ? 0.05 : 0.02) + Math.abs(s.scrollVelocity || 0) * 0.001
+      nextPos.x += Math.sin(time * 80) * shakeAmt
+      nextPos.y += Math.cos(time * 90) * shakeAmt
+      nextPos.z += Math.sin(time * 75) * shakeAmt
     }
 
     if (s.launching) {
