@@ -303,7 +303,10 @@ export function panRain(x: number) {
 }
 
 export function updateRain(scrollVelocity: number) {
-  if (!ctx || !rainFilter) return
-  const target = 2500 + Math.abs(scrollVelocity) * 30
-  rainFilter.frequency.setTargetAtTime(target, ctx.currentTime, 0.1)
+  if (!ctx || !rainFilter || !rainGain) return
+  const vel = Math.abs(scrollVelocity)
+  const targetFreq = 2500 + vel * 30
+  const targetGain = 0.08 + Math.min(0.2, vel * 0.002)
+  rainFilter.frequency.setTargetAtTime(targetFreq, ctx.currentTime, 0.1)
+  rainGain.gain.setTargetAtTime(targetGain, ctx.currentTime, 0.1)
 }

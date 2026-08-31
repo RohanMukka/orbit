@@ -39,6 +39,7 @@ export function CyberRain() {
     rotRef.current = THREE.MathUtils.damp(rotRef.current, state.pointer.x * 0.5, 4, dt)
     
     audio.panRain(state.pointer.x)
+    audio.updateRain(s.scrollVelocity || 0)
     
     for (let i = 0; i < COUNT; i++) {
       let x = positions[i * 3 + 0]
