@@ -177,7 +177,7 @@ export function buildTailBar() {
   if (pts.length < 4) return new THREE.BufferGeometry()
   // Sit it a few millimetres proud of the dome it is tracing.
   const path = pts.map((p) => new THREE.Vector3(p.x - 0.014, p.y, p.z * 0.94))
-  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path), 72, 0.023, 8, false)
+  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path), 72, 0.017, 8, false)
 }
 
 /** Slatted vent under the tail bar — the rear panel had nothing on it at all. */

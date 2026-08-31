@@ -115,7 +115,7 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
           {study ? (
             <StudyMaterial view={view} />
           ) : (
-            <meshStandardMaterial {...clip} color={rim.color} metalness={rim.metal} roughness={rim.rough} envMapIntensity={5.5} emissive={rim.emissive || '#000000'} emissiveIntensity={rim.emissiveIntensity || 0} />
+            <meshStandardMaterial {...clip} color={rim.color} metalness={rim.metal} roughness={rim.rough} envMapIntensity={4.2} emissive={rim.emissive || '#000000'} emissiveIntensity={rim.emissiveIntensity || 0} />
           )}
         </mesh>
         {!study && (

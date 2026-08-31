@@ -104,8 +104,8 @@ function StudioRig() {
           at luminance 2, darker than the empty background behind the car. These
           three sit at hub height and aim into the arches.
         */}
-        <Lightformer form="rect" intensity={3.6 * k} position={[3.8, 0.6, 3.4]} scale={[3.4, 0.55, 1]} target={[0, 0.36, 0]} color="#e2ebff" />
-        <Lightformer form="rect" intensity={3.6 * k} position={[-3.8, 0.6, 3.4]} scale={[3.4, 0.55, 1]} target={[0, 0.36, 0]} color="#e2ebff" />
+        <Lightformer form="rect" intensity={3.0 * k} position={[3.8, 0.6, 3.4]} scale={[3.4, 0.55, 1]} target={[0, 0.36, 0]} color="#e2ebff" />
+        <Lightformer form="rect" intensity={3.0 * k} position={[-3.8, 0.6, 3.4]} scale={[3.4, 0.55, 1]} target={[0, 0.36, 0]} color="#e2ebff" />
         <Lightformer form="rect" intensity={2.6 * k} position={[0, 0.52, -4.4]} scale={[4.6, 0.45, 1]} target={[0, 0.36, 0]} color="#cddffb" />
       </group>
     </Environment>
