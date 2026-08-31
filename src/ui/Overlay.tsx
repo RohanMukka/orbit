@@ -17,8 +17,10 @@ function Telemetry() {
   const paint = useStore((s) => s.paint)
   const chapter = useStore((s) => s.chapter)
   const scrollVelocity = useStore((s) => s.scrollVelocity)
+  const blurAmount = Math.abs(scrollVelocity || 0) * 2.0
+  const opacity = Math.max(0.2, 1.0 - Math.abs(scrollVelocity || 0) * 0.1)
   return (
-    <div className={`hud hud--bl ${progress > 0.9 ? 'hud--away' : ''}`}>
+    <div className={`hud hud--bl ${progress > 0.9 ? 'hud--away' : ''}`} style={{ filter: `blur(${blurAmount}px)`, opacity }}>
       <div className="hud__row">
         <span className="hud__k">Geometry</span>
         <span className="hud__v">procedural · 0 assets</span>
