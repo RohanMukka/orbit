@@ -266,8 +266,14 @@ function section(u: number, theta: number, P: ProfileSet = BASE_PROFILES): BodyP
   // and painting it carbon reads as an intake without any extra geometry.
   const intake = smoothstep(0.19, 0.26, u) * (1 - smoothstep(0.34, 0.43, u))
   if (intake > 0) {
-    const band = 1 - Math.min(1, Math.abs(y - (yc - rb * 0.16)) / (rb * 0.66))
-    if (band > 0) z *= 1 - 0.3 * intake * smoothstep(0, 1, band)
+    // Measure the recess from the opening's own angle rather than from a fixed
+    // height. Centring the press on a height while the aperture is centred on
+    // an angle leaves the dark opening sitting off-centre in its own scallop,
+    // which is most of why the two read as a flat rectangle instead of a duct.
+    const c = intakeCentre(u)
+    const d = Math.min(Math.abs(wrap(theta - c)), Math.abs(wrap(theta - Math.PI + c)))
+    const band = 1 - Math.min(1, d / 0.46)
+    if (band > 0) z *= 1 - 0.36 * intake * smoothstep(0, 1, band)
   }
 
   // --- character lines -----------------------------------------------------
@@ -338,11 +344,32 @@ export function mouthAperture(u: number): number {
 }
 
 /** Angular half-height of the side intake, and the angle it is centred on. */
-export const INTAKE_CENTRE = -0.14
-export function intakeAperture(u: number): number {
-  const t = (u - 0.305) / 0.115
-  return Math.abs(t) < 1 ? 0.17 * Math.pow(1 - t * t, 0.55) : 0
+/**
+ * The angle the intake is centred on, as it travels along the car.
+ *
+ * This used to be a constant, which is why the opening read as a rectangle
+ * stuck on the door: a fixed angle draws a band running dead level with the
+ * shoulder for the whole length of the scallop. A real side intake rakes — its
+ * mouth sits high at the back where the air goes in and drops as it runs
+ * forward along the haunch.
+ */
+export function intakeCentre(u: number): number {
+  const t = Math.min(1, Math.max(0, (u - 0.2) / 0.21))
+  return -0.05 - 0.26 * t * t
 }
+
+export function intakeAperture(u: number): number {
+  const t = (u - 0.3) / 0.11
+  if (Math.abs(t) >= 1) return 0
+  // Exponent 0.55 held the lens near full height across most of its length,
+  // which is a rectangle with rounded ends. 0.9 draws it to a point, and the
+  // forward taper makes it a duct mouth rather than a symmetric oval.
+  const forward = t < 0 ? 1 : 1 - t * 0.5
+  return 0.15 * Math.pow(1 - t * t, 0.9) * forward
+}
+
+/** Kept for callers that only need the mid-scallop angle. */
+export const INTAKE_CENTRE = -0.14
 
 function surfaceAtParam(u: number, theta: number): Surface {
   /**
@@ -374,10 +401,8 @@ function surfaceAtParam(u: number, theta: number): Surface {
   // a point at both ends of the scallop.
   const aperture = intakeAperture(u)
   if (aperture > 0) {
-    const flank = Math.min(
-      Math.abs(wrap(theta - INTAKE_CENTRE)),
-      Math.abs(wrap(theta - Math.PI + INTAKE_CENTRE))
-    )
+    const c = intakeCentre(u)
+    const flank = Math.min(Math.abs(wrap(theta - c)), Math.abs(wrap(theta - Math.PI + c)))
     if (flank < aperture) return 'carbon'
   }
 

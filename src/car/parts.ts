@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { merge } from './merge'
-import { CAR, bodyPoint, canopySpan, intakeAperture, INTAKE_CENTRE } from './body'
+import { CAR, bodyPoint, canopySpan, intakeAperture, intakeCentre } from './body'
 
 const tube = (pts: THREE.Vector3[], radius: number, radial = 8) =>
   new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 64, radius, radial, false)
@@ -84,14 +84,90 @@ const WING = {
   attack: 0.1,
 }
 
-/** Half an aerofoil sweep: flat-ish upper surface, cambered underside. */
-function wingSection() {
+/**
+ * The wing's section as a closed profile in chord units: leading edge at
+ * x = +0.5, trailing edge at -0.5, with a gurney lip standing off the trailing
+ * edge. Normalised, so the loft below can scale it station by station.
+ */
+function aerofoilPoints(n = 26): THREE.Vector2[] {
+  const pts: THREE.Vector2[] = []
+  for (let i = 0; i <= n; i++) {
+    const t = i / n
+    pts.push(new THREE.Vector2(0.5 - t, 0.03 * Math.pow(Math.sin(Math.PI * t), 0.9) + 0.012 * (1 - t)))
+  }
+  // gurney — the lip that makes a wing look like it does a job
+  pts.push(new THREE.Vector2(-0.5, 0.062))
+  pts.push(new THREE.Vector2(-0.523, 0.062))
+  pts.push(new THREE.Vector2(-0.523, -0.008))
+  for (let i = n; i >= 0; i--) {
+    const t = i / n
+    pts.push(new THREE.Vector2(0.5 - t, -0.055 * Math.pow(Math.sin(Math.PI * t), 0.75) - 0.008))
+  }
+  return pts
+}
+
+/**
+ * Lofts that section across the span.
+ *
+ * The wing was one ExtrudeGeometry: a constant-chord plank carrying the same
+ * profile root to tip. Extrusion cannot taper, and an untapered wing reads as a
+ * shelf — the plan view is most of what says "aerofoil" long before you are
+ * close enough to see the section. Sweeping the profile by hand costs nothing
+ * and buys chord taper and a little rearward sweep at the tips.
+ */
+function loftWing() {
+  const prof = aerofoilPoints()
+  const n = prof.length
+  const N = 16
+  const positions: number[] = []
+  const indices: number[] = []
+
+  const station = (i: number) => {
+    const sPos = (i / N - 0.5) * 2
+    return {
+      z: sPos * WING.span * 0.5,
+      scale: WING.chord * (1 - 0.27 * sPos * sPos),
+      dx: -0.06 * sPos * sPos,
+    }
+  }
+
+  for (let i = 0; i <= N; i++) {
+    const st = station(i)
+    for (const q of prof) positions.push(q.x * st.scale + st.dx, q.y * st.scale, st.z)
+  }
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < n; j++) {
+      const jn = (j + 1) % n
+      indices.push(i * n + j, i * n + jn, (i + 1) * n + jn)
+      indices.push(i * n + j, (i + 1) * n + jn, (i + 1) * n + j)
+    }
+  }
+  for (const end of [0, N]) {
+    const st = station(end)
+    const centre = positions.length / 3
+    positions.push(st.dx, 0, st.z)
+    for (let j = 0; j < n; j++) {
+      const jn = (j + 1) % n
+      if (end === 0) indices.push(centre, end * n + jn, end * n + j)
+      else indices.push(centre, end * n + j, end * n + jn)
+    }
+  }
+
+  const g = new THREE.BufferGeometry()
+  g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  g.setIndex(indices)
+  g.computeVertexNormals()
+  return g
+}
+
+/** Endplate outline: swept, with the lower trailing corner cut away. */
+function endplateShape() {
   const s = new THREE.Shape()
-  const c = WING.chord * 0.5
-  s.moveTo(c, 0) // leading edge
-  s.quadraticCurveTo(c * 0.1, 0.05, -c, 0.014) // upper surface
-  s.lineTo(-c, -0.006) // trailing edge
-  s.quadraticCurveTo(c * 0.1, -0.028, c, 0) // underside — the working face
+  s.moveTo(0.3, -0.085)
+  s.lineTo(0.245, 0.125)
+  s.quadraticCurveTo(0.02, 0.165, -0.255, 0.115)
+  s.lineTo(-0.285, -0.02)
+  s.quadraticCurveTo(-0.13, -0.105, 0.3, -0.085)
   s.closePath()
   return s
 }
@@ -99,21 +175,21 @@ function wingSection() {
 export function buildDucktail() {
   const parts: THREE.BufferGeometry[] = []
 
-  const wing = new THREE.ExtrudeGeometry(wingSection(), {
-    depth: WING.span,
-    bevelEnabled: false,
-    curveSegments: 12,
-  })
-  wing.translate(0, 0, -WING.span / 2)
+  const wing = loftWing()
   wing.rotateZ(WING.attack)
   wing.translate(WING.x, WING.y, 0)
   parts.push(wing)
 
   for (const s of [1, -1]) {
-    // Endplates, vertical and sized to the chord they close off.
-    const endplate = new THREE.BoxGeometry(WING.chord * 1.24, 0.22, 0.022)
+    // Endplates. A box gives four square corners and reads as packaging; this
+    // outline sweeps with the wing it closes off.
+    const endplate = new THREE.ExtrudeGeometry(endplateShape(), {
+      depth: 0.016,
+      bevelEnabled: false,
+      curveSegments: 14,
+    })
     endplate.rotateZ(WING.attack)
-    endplate.translate(WING.x - 0.02, WING.y + 0.04, s * WING.span * 0.5)
+    endplate.translate(WING.x - 0.03, WING.y + 0.03, s * WING.span * 0.5 - 0.008)
     parts.push(endplate)
 
     /**
@@ -246,6 +322,30 @@ export function buildInterior() {
     parts.push(hoop)
   }
 
+  return merge(parts)
+}
+
+/**
+ * Vertical vanes across the intake mouth. The opening is a material change on a
+ * pressed surface, not a hole, so on its own it is a dark shape with no depth —
+ * fins bridging it are what tell the eye it is an aperture rather than a panel
+ * painted black.
+ */
+export function buildIntakeVanes() {
+  const parts: THREE.BufferGeometry[] = []
+  for (const side of [1, -1]) {
+    for (const u of [0.258, 0.3, 0.342]) {
+      const ap = intakeAperture(u)
+      if (ap <= 0.02) continue
+      const base = side > 0 ? intakeCentre(u) : Math.PI - intakeCentre(u)
+      const pts: THREE.Vector3[] = []
+      for (let k = 0; k <= 10; k++) {
+        const p = bodyPoint(u, base + (-1 + (k / 10) * 2) * ap * 0.84)
+        pts.push(new THREE.Vector3(p.x, p.y, p.z * 1.004))
+      }
+      parts.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 14, 0.0075, 5, false))
+    }
+  }
   return merge(parts)
 }
 
@@ -385,8 +485,15 @@ export function buildCanopyTrim() {
 }
 
 export function buildIntakeTrim() {
-  const sides = [INTAKE_CENTRE, Math.PI - INTAKE_CENTRE].map((c) =>
-    trimLoop(0.198, 0.412, () => c, intakeAperture, 0.009, 70)
+  const sides = [1, -1].map((sd) =>
+    trimLoop(
+      0.202,
+      0.398,
+      (u) => (sd > 0 ? intakeCentre(u) : Math.PI - intakeCentre(u)),
+      intakeAperture,
+      0.009,
+      70
+    )
   )
   return merge(sides)
 }

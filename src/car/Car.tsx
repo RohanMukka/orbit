@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { buildBodyGeometry, shapedProfiles, updateBodyPositions, CAR } from './body'
 import { buildTire, buildRim, buildBrake, buildCaliper } from './wheel'
-import { buildTailLight, buildHeadLights, buildDucktail, buildMirrors, buildSplitter, buildDiffuser, buildCanopyTrim, buildIntakeTrim, buildArchLips, buildHeadLightHousings, buildChassis, buildTailBar, buildRearVent, buildInterior, AXLES } from './parts'
+import { buildTailLight, buildHeadLights, buildDucktail, buildMirrors, buildSplitter, buildDiffuser, buildCanopyTrim, buildIntakeTrim, buildArchLips, buildHeadLightHousings, buildChassis, buildTailBar, buildRearVent, buildInterior, buildIntakeVanes, AXLES } from './parts'
 import { buildProfileCurves, buildSectionRings, buildGroundRule } from './blueprint'
 import { useStore, peek, type ViewMode } from '../state'
 
@@ -170,6 +170,7 @@ export function Car(props: ComponentProps<'group'>) {
   const tailBar = useMemo(() => buildTailBar(), [])
   const rearVent = useMemo(() => buildRearVent(), [])
   const interior = useMemo(() => buildInterior(), [])
+  const intakeVanes = useMemo(() => buildIntakeVanes(), [])
 
   const f = FINISH[paint.finish]
 
@@ -673,6 +674,9 @@ export function Car(props: ComponentProps<'group'>) {
           <>
             <mesh geometry={rearVent}>
               <meshStandardMaterial {...clip} color="#0b0c0f" metalness={0.7} roughness={0.55} />
+            </mesh>
+            <mesh geometry={intakeVanes}>
+              <meshStandardMaterial {...clip} color="#191b20" metalness={0.75} roughness={0.42} />
             </mesh>
             {/* Something for the canopy to have behind it. */}
             <mesh geometry={interior}>
