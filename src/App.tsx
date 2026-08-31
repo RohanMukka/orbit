@@ -119,7 +119,6 @@ export function App() {
             <Preload all />
           </Suspense>
           <Rig />
-          <AdaptiveDpr pixelated />
         </Canvas>
         <LoadFlag />
       </div>

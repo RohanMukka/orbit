@@ -487,8 +487,7 @@ export function Car(props: ComponentProps<'group'>) {
     const scrollVel = Math.abs(peek().scrollVelocity || 0)
     paintMat.envMapIntensity = 1.35 + Math.sin(state.clock.elapsedTime * 2.0) * 0.4 + scrollVel * 0.02
     paintMat.metalness = THREE.MathUtils.damp(paintMat.metalness, f.metalness + scrollVel * 0.005, 5, dt)
-    const flakeSparkle = Math.sin(state.clock.elapsedTime * 1000.0) * 0.03
-    paintMat.roughness = f.roughness + flakeSparkle
+    paintMat.roughness = f.roughness
     paintMat.clearcoat = THREE.MathUtils.damp(paintMat.clearcoat, launching ? 0.0 : f.clearcoat, 3, dt)
     glassMat.envMapIntensity = 2.0 + Math.sin(state.clock.elapsedTime * 2.0) * 0.2 + scrollVel * 0.05
     glassMat.transmission = THREE.MathUtils.damp(glassMat.transmission, 0.8 - scrollVel * 0.001, 5, dt)
