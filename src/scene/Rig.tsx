@@ -150,11 +150,11 @@ export function Rig() {
     const swing = s.entered ? 1 : 0.35
     nextPos.x += Math.sin(time * 0.19) * 0.22 * swing + pointer.current.x * 2.5
     nextPos.y += Math.cos(time * 0.16) * 0.08 * swing - pointer.current.y * 0.35
-    nextPos.z += Math.cos(time * 0.13) * 0.22 * swing + (s.scrollVelocity || 0) * 0.003
+    nextPos.z += Math.cos(time * 0.13) * 0.22 * swing + (s.scrollVelocity || 0) * 0.03
     
     // Physical camera target lag & apex tracking
     nextTarget.x += (s.scrollVelocity || 0) * 0.0005 + pointer.current.x * -1.5
-    nextTarget.z += (s.scrollVelocity || 0) * -0.0002
+    nextTarget.z += (s.scrollVelocity || 0) * -0.005
 
     // Directional G-Force: Accelerate (positive) expands FOV, Brake (negative) compresses FOV
     fov += (s.scrollVelocity || 0) * 0.1
