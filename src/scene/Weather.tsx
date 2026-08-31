@@ -67,6 +67,8 @@ export function CyberRain() {
       dummy.scale.set(1, scaleRef.current, 1)
       
       dummy.rotation.z = rotRef.current
+      const pitchRef = (s.scrollVelocity || 0) * 0.005
+      dummy.rotation.x = pitchRef
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
     }
