@@ -26,6 +26,7 @@ export function CyberRain() {
   const speeds = useMemo(() => new Float32Array(COUNT).map(() => 5 + Math.random() * 10), [])
   
   const scaleRef = useRef(1.0)
+  const rotRef = useRef(0)
 
   const targetColor = useMemo(() => new THREE.Color(), [])
   const whiteColor = useMemo(() => new THREE.Color('#ffffff'), [])
@@ -35,6 +36,7 @@ export function CyberRain() {
     
     const s = peek()
     scaleRef.current = THREE.MathUtils.damp(scaleRef.current, s.launching ? 40.0 : 1.0, 5, dt)
+    rotRef.current = THREE.MathUtils.damp(rotRef.current, state.pointer.x * 0.5, 4, dt)
     
     audio.panRain(state.pointer.x)
     
@@ -43,9 +45,10 @@ export function CyberRain() {
       let y = positions[i * 3 + 1]
       let z = positions[i * 3 + 2]
       
-      y -= (speeds[i] + (s.scrollVelocity || 0) * 0.1) * dt
+      const launchDeflect = s.launching ? speeds[i] * 5.0 * dt : 0
+      y -= (speeds[i] + (s.scrollVelocity || 0) * 0.5) * dt - launchDeflect
       x += state.pointer.x * 2.0 * dt
-      z -= (s.scrollVelocity || 0) * dt * 0.1
+      z -= (s.scrollVelocity || 0) * dt * 0.3
       
       if (y < -5) y += 20
       if (z > 20) z -= 40
@@ -60,7 +63,7 @@ export function CyberRain() {
       dummy.position.set(x, y, z)
       dummy.scale.set(1, scaleRef.current, 1)
       
-      dummy.rotation.z = state.pointer.x * 0.5
+      dummy.rotation.z = rotRef.current
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
     }

@@ -72,8 +72,11 @@ export function CyberDust({ count = 500 }) {
       if (launching) {
         targetColor.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
         matRef.current.color.lerp(targetColor, 0.1)
+        matRef.current.opacity = THREE.MathUtils.damp(matRef.current.opacity, 0.1, 4, delta)
       } else {
         matRef.current.color.lerp(whiteColor, 0.1)
+        const targetOpacity = Math.max(0.01, 0.3 - Math.abs(s.scrollVelocity || 0) * 0.05)
+        matRef.current.opacity = THREE.MathUtils.damp(matRef.current.opacity, targetOpacity, 4, delta)
       }
     }
   })

@@ -39,8 +39,10 @@ function DebrisField() {
         d.y = -15 + Math.random() * 30
         d.z = -15 + Math.random() * 30
       }
+      d.y += Math.sin(state.clock.elapsedTime + i) * 0.05
+      
       dummy.position.set(d.x, d.y, d.z)
-      dummy.rotation.x += d.rx * dt
+      dummy.rotation.x += d.rx * dt * (0.5 + Math.sin(state.clock.elapsedTime * 2) * 0.5)
       dummy.rotation.y += d.ry * dt
       dummy.rotation.z += d.rz * dt
       dummy.updateMatrix()

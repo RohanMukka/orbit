@@ -56,10 +56,11 @@ function ThrusterFlames() {
     mesh2.current.position.set(x, 0.5, -0.6)
 
     const velSurge = 1.0 + Math.abs(peek().scrollVelocity || 0) * 0.02
-    const s1x = (0.8 + Math.random() * 0.4) * velSurge
-    const s1y = (0.8 + Math.random() * 0.4) * velSurge
-    const s2x = (0.8 + Math.random() * 0.4) * velSurge
-    const s2y = (0.8 + Math.random() * 0.4) * velSurge
+    const t = state.clock.elapsedTime
+    const s1x = (0.8 + Math.sin(t * 80) * 0.2 + Math.cos(t * 43) * 0.2) * velSurge
+    const s1y = (0.8 + Math.sin(t * 70) * 0.2 + Math.cos(t * 51) * 0.2) * velSurge
+    const s2x = (0.8 + Math.sin(t * 85) * 0.2 + Math.cos(t * 40) * 0.2) * velSurge
+    const s2y = (0.8 + Math.sin(t * 75) * 0.2 + Math.cos(t * 48) * 0.2) * velSurge
     mesh1.current.scale.set(s1x, s1y, 1)
     mesh2.current.scale.set(s2x, s2y, 1)
   })
@@ -190,25 +191,21 @@ export function Exhaust() {
         // Spawn
         toSpawn--
         p.life = 1.0
-        p.maxLife = 0.3 + Math.random() * 0.4 // shorter life
-        
-        // Spawn at rear of car (x = -2.4 + drive, y = 0.5, z = 0)
+        p.maxLife = 0.3 + Math.abs(Math.sin(i * 13)) * 0.4
         p.x = drive - 2.4
-        p.y = 0.5 + (Math.random() - 0.5) * 0.2
-        p.z = (Math.random() - 0.5) * 0.4
+        p.y = 0.5 + Math.sin(i * 37) * 0.2
+        p.z = Math.cos(i * 41) * 0.4
         
-        // Velocity (trail backwards)
-        // Car moving +X, so exhaust goes -X
         if (lt < 1.0) {
-          p.vx = -4 - Math.random() * 8
+          p.vx = -4 - Math.abs(Math.sin(i * 17)) * 8
         } else {
-          p.vx = -15 - Math.random() * 25 - Math.abs(peek().scrollVelocity || 0) * 0.3 // scroll-boosted blast
+          p.vx = -15 - Math.abs(Math.sin(i * 17)) * 25 - Math.abs(peek().scrollVelocity || 0) * 0.3
         }
         
-        p.vy = (Math.random() - 0.5) * 4 + 1.0 // slight upward drift
-        p.vz = (Math.random() - 0.5) * 4
+        p.vy = Math.sin(i * 53) * 2 + 1.0
+        p.vz = Math.cos(i * 53) * 2
         
-        p.scale = 0.4 + Math.random() * 0.6
+        p.scale = 0.4 + Math.abs(Math.sin(i * 61)) * 0.6
       }
 
       // Update particle

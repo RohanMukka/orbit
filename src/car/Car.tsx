@@ -67,8 +67,9 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
     const targetFold = s.launching ? (-Math.PI / 2) * side : 0
     offsetRef.current.rotation.x = THREE.MathUtils.damp(offsetRef.current.rotation.x, targetFold, 5, dt)
 
-    const targetSteer = front ? state.pointer.x * -0.5 : 0
-    offsetRef.current.rotation.y = THREE.MathUtils.damp(offsetRef.current.rotation.y, targetSteer, 5, dt)
+    const steerMult = 0.5 + Math.abs(s.scrollVelocity || 0) * 0.05
+    const targetSteer = front ? state.pointer.x * -steerMult : 0
+    offsetRef.current.rotation.y = THREE.MathUtils.damp(offsetRef.current.rotation.y, targetSteer, 8, dt)
 
     const targetGlow = s.launching ? 4.0 : 0.0
     if (tireMatRef.current) {
@@ -437,10 +438,10 @@ export function Car(props: ComponentProps<'group'>) {
 
     if (headlightsGroupRef.current) {
       if (revealed.current < 3.0) {
-        headlightsGroupRef.current.visible = Math.sin(state.clock.elapsedTime * 20.0) > 0;
+        headlightsGroupRef.current.visible = Math.sin(Date.now() * 0.02) > 0;
       } else {
         if (peek().launching) {
-          const pulse = Math.sin(state.clock.elapsedTime * 50.0)
+          const pulse = Math.sin(Date.now() * 0.05)
           headlightsGroupRef.current.visible = true;
           if (headMatRef.current) headMatRef.current.emissiveIntensity = (st.night ? 6.0 : 0.5) + pulse * 2.0;
         } else {
@@ -461,8 +462,10 @@ export function Car(props: ComponentProps<'group'>) {
   useFrame((state, dt) => {
     const launching = peek().launching
 
-    paintMat.envMapIntensity = 1.35 + Math.sin(state.clock.elapsedTime * 2.0) * 0.4 + Math.abs(peek().scrollVelocity || 0) * 0.02
-    glassMat.envMapIntensity = 2.0 + Math.sin(state.clock.elapsedTime * 2.0) * 0.2 + Math.abs(peek().scrollVelocity || 0) * 0.05
+    const scrollVel = Math.abs(peek().scrollVelocity || 0)
+    paintMat.envMapIntensity = 1.35 + Math.sin(state.clock.elapsedTime * 2.0) * 0.4 + scrollVel * 0.02
+    paintMat.metalness = THREE.MathUtils.damp(paintMat.metalness, f.metalness + scrollVel * 0.005, 5, dt)
+    glassMat.envMapIntensity = 2.0 + Math.sin(state.clock.elapsedTime * 2.0) * 0.2 + scrollVel * 0.05
     if (launching && groupRef.current) {
       const rumble = Math.sin(state.clock.elapsedTime * 60) * 0.015
       const velShake = Math.abs(peek().scrollVelocity || 0) * 0.0001
