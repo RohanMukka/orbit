@@ -467,6 +467,9 @@ export function Car(props: ComponentProps<'group'>) {
           }
         }
       }
+      
+      const targetHeadlightSteer = state.pointer.x * -0.5 // Look into the corner
+      headlightsGroupRef.current.rotation.y = THREE.MathUtils.damp(headlightsGroupRef.current.rotation.y, targetHeadlightSteer, 5, dt)
     }
   })
 
