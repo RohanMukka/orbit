@@ -9,15 +9,15 @@ import { ROOF_HANDLES, WIDTH_HANDLES } from '../state'
  */
 
 export const CAR = {
-  length: 4.72,
-  frontAxle: 1.58,
+  length: 4.6, // Shortened slightly
+  frontAxle: 1.5,
   rearAxle: -1.5,
-  wheelRadius: 0.36,
-  wheelWidthFront: 0.27,
-  wheelWidthRear: 0.33,
+  wheelRadius: 0.40, // Scaled up wheels
+  wheelWidthFront: 0.28,
+  wheelWidthRear: 0.35,
   trackFront: 0.82,
   trackRear: 0.85,
-  archRadius: 0.46,
+  archRadius: 0.50, // Scaled up wheel arches
 }
 
 // u = 0 at the tail, u = 1 at the nose. x = (u - 0.5) * length
@@ -32,8 +32,8 @@ export const HALF_WIDTH_KEYS: Key[] = [
   [0.68, 0.97],
   [0.78, 1.03], // front fenders
   [0.88, 0.94],
-  [0.95, 0.8],
-  [1.0, 0.58], // blunt nose, not a spike
+  [0.95, 0.75],
+  [1.0, 0.35], // tapered aggressive nose
 ]
 
 export const ROOF_KEYS: Key[] = [
@@ -47,8 +47,8 @@ export const ROOF_KEYS: Key[] = [
   [0.72, 1.04], // windshield header
   [0.8, 0.89], // cowl
   [0.88, 0.79],
-  [0.95, 0.71],
-  [1.0, 0.66], // nose
+  [0.95, 0.65],
+  [1.0, 0.48], // low aggressive nose
 ]
 
 /**
@@ -251,7 +251,7 @@ function section(u: number, theta: number, P: ProfileSet = BASE_PROFILES): BodyP
   const intake = smoothstep(0.2, 0.3, u) * (1 - smoothstep(0.46, 0.56, u))
   if (intake > 0) {
     const band = 1 - Math.min(1, Math.abs(y - (yc - rb * 0.16)) / (rb * 0.66))
-    if (band > 0) z *= 1 - 0.16 * intake * smoothstep(0, 1, band)
+    if (band > 0) z *= 1 - 0.45 * intake * smoothstep(0, 1, band)
   }
 
   // --- character lines -----------------------------------------------------

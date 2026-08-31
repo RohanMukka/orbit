@@ -96,7 +96,7 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
           {study ? (
             <StudyMaterial view={view} />
           ) : (
-            <meshStandardMaterial {...clip} color={rim.color} metalness={rim.metal} roughness={rim.rough} envMapIntensity={1.5} emissive={rim.emissive || '#000000'} emissiveIntensity={rim.emissiveIntensity || 0} />
+            <meshStandardMaterial {...clip} color={rim.color} metalness={rim.metal} roughness={rim.rough} envMapIntensity={2.5} emissive={rim.emissive || '#000000'} emissiveIntensity={rim.emissiveIntensity || 0} />
           )}
         </mesh>
         {!study && (
@@ -211,10 +211,10 @@ export function Car(props: ComponentProps<'group'>) {
 
   const glassMat = useMemo(() => {
     const m = new THREE.MeshPhysicalMaterial({
-      color: '#010203',
-      metalness: 0.9,
-      roughness: 0.05,
-      transmission: 0.0,
+      color: '#050810',
+      metalness: 0.2,
+      roughness: 0.0,
+      transmission: 0.8,
       ior: 1.52,
       clearcoat: 1,
       clearcoatRoughness: 0.0,
@@ -569,9 +569,7 @@ export function Car(props: ComponentProps<'group'>) {
         </mesh>
 
       {/* Housings sit outside the emissive group so they stay dark. */}
-      <mesh geometry={headCups} visible={!study && !blueprint} ref={headCupsRef}>
-        <meshStandardMaterial {...clip} color="#050609" metalness={0.5} roughness={0.5} />
-      </mesh>
+      <mesh geometry={headCups} visible={!study && !blueprint} ref={headCupsRef} material={glassMat} />
 
       <group ref={lightRef} visible={!study}>
         <mesh geometry={head}>

@@ -32,9 +32,18 @@ function headLightPath(s: number) {
   return pts
 }
 
-/** Two hooked blades that wrap from the fender tops into the nose. */
+/** Rows of LED bulbs inside the headlight housing. */
 export function buildHeadLights() {
-  return merge([tube(headLightPath(1), 0.019, 10), tube(headLightPath(-1), 0.019, 10)])
+  const parts: THREE.BufferGeometry[] = []
+  for (const s of [1, -1]) {
+    const path = headLightPath(s)
+    for (let i = 2; i <= 16; i += 3) {
+      const bulb = new THREE.SphereGeometry(0.018, 12, 12)
+      bulb.translate(path[i].x - 0.01, path[i].y - 0.01, path[i].z)
+      parts.push(bulb)
+    }
+  }
+  return merge(parts)
 }
 
 /**
