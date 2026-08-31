@@ -30,7 +30,7 @@ export interface Rim {
 }
 
 export const RIMS: Rim[] = [
-  { id: 'graphite', name: 'Graphite', color: '#4a4d52', metal: 1, rough: 0.15 },
+  { id: 'graphite', name: 'Graphite', color: '#70747c', metal: 1, rough: 0.17 },
   { id: 'polished', name: 'Polished', color: '#e0e5eb', metal: 1, rough: 0.05 },
   { id: 'bronze', name: 'Bronze', color: '#8a5a24', metal: 1, rough: 0.28 },
   { id: 'neon', name: 'Tron Neon', color: '#000000', metal: 0.1, rough: 0.5, emissive: '#00ffff', emissiveIntensity: 4.0 },

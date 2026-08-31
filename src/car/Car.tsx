@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { buildBodyGeometry, shapedProfiles, updateBodyPositions, CAR } from './body'
 import { buildTire, buildRim, buildBrake, buildCaliper } from './wheel'
-import { buildTailLight, buildHeadLights, buildDucktail, buildMirrors, buildSplitter, buildDiffuser, buildCanopyTrim, buildIntakeTrim, buildArchLips, buildHeadLightHousings, buildChassis, AXLES } from './parts'
+import { buildTailLight, buildHeadLights, buildDucktail, buildMirrors, buildSplitter, buildDiffuser, buildCanopyTrim, buildIntakeTrim, buildArchLips, buildHeadLightHousings, buildChassis, buildTailBar, buildRearVent, buildInterior, AXLES } from './parts'
 import { buildProfileCurves, buildSectionRings, buildGroundRule } from './blueprint'
 import { useStore, peek, type ViewMode } from '../state'
 
@@ -115,12 +115,12 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
           {study ? (
             <StudyMaterial view={view} />
           ) : (
-            <meshStandardMaterial {...clip} color={rim.color} metalness={rim.metal} roughness={rim.rough} envMapIntensity={2.5} emissive={rim.emissive || '#000000'} emissiveIntensity={rim.emissiveIntensity || 0} />
+            <meshStandardMaterial {...clip} color={rim.color} metalness={rim.metal} roughness={rim.rough} envMapIntensity={5.5} emissive={rim.emissive || '#000000'} emissiveIntensity={rim.emissiveIntensity || 0} />
           )}
         </mesh>
         {!study && (
           <mesh geometry={brake}>
-            <meshStandardMaterial {...clip} color="#191a1f" metalness={0.9} roughness={0.28} />
+            <meshStandardMaterial {...clip} color="#2b2e35" metalness={0.85} roughness={0.32} envMapIntensity={3.0} />
           </mesh>
         )}
       </group>
@@ -167,6 +167,9 @@ export function Car(props: ComponentProps<'group'>) {
   const intakeTrim = useMemo(() => buildIntakeTrim(), [])
   const archLips = useMemo(() => buildArchLips(), [])
   const chassis = useMemo(() => buildChassis(), [])
+  const tailBar = useMemo(() => buildTailBar(), [])
+  const rearVent = useMemo(() => buildRearVent(), [])
+  const interior = useMemo(() => buildInterior(), [])
 
   const f = FINISH[paint.finish]
 
@@ -198,13 +201,52 @@ export function Car(props: ComponentProps<'group'>) {
         '#include <color_fragment>',
         `#include <color_fragment>
         {
+          // vUv.x is the station u along the car; vUv.y is theta/TAU around the
+          // section, with 0.0 (= 1.0) at the +z shoulder, 0.25 the roof, 0.5 the
+          // -z shoulder and 0.75 the floor.
           float gap = 0.0;
+
+          // --- transverse cuts across the upper surface -------------------
           // engine cover, then the cowl ahead of the windscreen
           gap = max(gap, 1.0 - smoothstep(0.0, 0.001, abs(vUv.x - 0.295)));
           gap = max(gap, 1.0 - smoothstep(0.0, 0.001, abs(vUv.x - 0.828)));
-          // only across the upper surface, dying before it reaches the shoulders
           float band = smoothstep(0.03, 0.10, vUv.y) * (1.0 - smoothstep(0.40, 0.47, vUv.y));
-          diffuseColor.rgb *= 1.0 - 0.82 * gap * band;
+          gap *= band;
+
+          // --- doors -------------------------------------------------------
+          // There were no longitudinal cuts anywhere on this body: both gaps
+          // above run across the car and stop at the shoulders, so the flanks
+          // were one unbroken moulded surface nose to tail. A car with no shut
+          // line reads as a solid, which is most of what made this look moulded
+          // rather than assembled.
+          //
+          // Signed height from whichever shoulder this fragment is nearer, so
+          // one expression draws the door on both sides. Positive is upward.
+          float sPlus  = (vUv.y < 0.5) ? vUv.y : vUv.y - 1.0;
+          float sMinus = 0.5 - vUv.y;
+          bool nearMinus = abs(vUv.y - 0.5) < 0.25;
+          float sSide = nearMinus ? sMinus : sPlus;
+
+          float doorRear  = 1.0 - smoothstep(0.0, 0.0011, abs(vUv.x - 0.425));
+          float doorFront = 1.0 - smoothstep(0.0, 0.0011, abs(vUv.x - 0.735));
+          // shut lines run from the sill up to the glass, not around the section
+          float doorTall  = smoothstep(-0.098, -0.086, sSide) * (1.0 - smoothstep(0.088, 0.104, sSide));
+          gap = max(gap, max(doorRear, doorFront) * doorTall);
+
+          // sill, closing the bottom of the door between the two shuts
+          float between = smoothstep(0.421, 0.429, vUv.x) * (1.0 - smoothstep(0.731, 0.739, vUv.x));
+          float sill = 1.0 - smoothstep(0.0, 0.0016, abs(sSide + 0.092));
+          gap = max(gap, sill * between);
+
+          // --- engine deck louvres ----------------------------------------
+          // Three short slats over the deck, so the rear quarter has something
+          // to catch light on instead of reading as one blank panel.
+          float deck = smoothstep(0.12, 0.15, vUv.x) * (1.0 - smoothstep(0.25, 0.28, vUv.x));
+          float slat = 1.0 - smoothstep(0.0, 0.0022, abs(fract((sSide + 0.5) * 26.0) - 0.5) / 26.0);
+          float deckBand = smoothstep(0.02, 0.05, abs(sSide)) * (1.0 - smoothstep(0.10, 0.13, abs(sSide)));
+          gap = max(gap, deck * slat * deckBand * 0.75);
+
+          diffuseColor.rgb *= 1.0 - 0.82 * gap;
         }`
       )
       
@@ -230,11 +272,18 @@ export function Car(props: ComponentProps<'group'>) {
 
   const glassMat = useMemo(() => {
     const m = new THREE.MeshPhysicalMaterial({
-      color: '#050810',
-      metalness: 0.2,
-      roughness: 0.0,
-      transmission: 0.8,
-      ior: 1.52,
+      /**
+       * Was #050810 at transmission 0.8: a near-black tint transmitting a dark
+       * studio, which resolves to black with one mirror-sharp highlight on it.
+       * A lighter tint and a little thickness let the cockpit behind it read,
+       * which is the only thing that makes glass look like glass.
+       */
+      color: '#243040',
+      metalness: 0.0,
+      roughness: 0.04,
+      transmission: 0.92,
+      thickness: 0.14,
+      ior: 1.46,
       clearcoat: 1,
       clearcoatRoughness: 0.0,
       envMapIntensity: 2.5,
@@ -620,6 +669,17 @@ export function Car(props: ComponentProps<'group'>) {
           </mesh>
         </>
       )}
+        {!study && (
+          <>
+            <mesh geometry={rearVent}>
+              <meshStandardMaterial {...clip} color="#0b0c0f" metalness={0.7} roughness={0.55} />
+            </mesh>
+            {/* Something for the canopy to have behind it. */}
+            <mesh geometry={interior}>
+              <meshStandardMaterial {...clip} color="#15171c" roughness={0.82} metalness={0.15} />
+            </mesh>
+          </>
+        )}
         <mesh geometry={splitter} visible={!blueprint} castShadow={!study} ref={splitterRef}>
           {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
         </mesh>
@@ -636,6 +696,9 @@ export function Car(props: ComponentProps<'group'>) {
         </mesh>
         <mesh geometry={tail}>
           <meshStandardMaterial {...clip} color="#ff2a12" emissive="#ff2a12" emissiveIntensity={night ? 4.0 : 0.5} toneMapped={false} />
+        </mesh>
+        <mesh geometry={tailBar}>
+          <meshStandardMaterial {...clip} color="#ff2a12" emissive="#ff2a12" emissiveIntensity={night ? 3.4 : 0.45} toneMapped={false} />
         </mesh>
       </group>
 

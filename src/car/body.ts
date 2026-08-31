@@ -12,7 +12,14 @@ export const CAR = {
   length: 4.6, // Shortened slightly
   frontAxle: 1.5,
   rearAxle: -1.5,
-  wheelRadius: 0.40, // Scaled up wheels
+  /**
+   * Length / wheel diameter is the number that decides whether a car reads as a
+   * car or as a toy, and it is the one the arch-lip comment in parts.ts leans
+   * on. At radius 0.40 this car was 5.75 diameters long; a Huracan is 6.46, a
+   * 720S 6.39, an SF90 6.63. Oversized wheels on a short body is Hot Wheels
+   * proportion. 0.36 puts it at 6.39.
+   */
+  wheelRadius: 0.36,
   wheelWidthFront: 0.28,
   wheelWidthRear: 0.35,
   /**
@@ -39,9 +46,10 @@ export const HALF_WIDTH_KEYS: Key[] = [
   [0.56, 0.89],
   [0.68, 0.97],
   [0.78, 1.03], // front fenders
-  [0.88, 0.94],
-  [0.95, 0.75],
-  [1.0, 0.35], // tapered aggressive nose
+  [0.88, 0.97],
+  [0.94, 0.90],
+  [0.97, 0.78],
+  [1.0, 0.5], // rounded tip, not a beak: ~10 deg of taper then a quick round
 ]
 
 export const ROOF_KEYS: Key[] = [
@@ -316,6 +324,19 @@ export function canopySpan(u: number): number {
   return cabin > 0.012 ? 1.12 * Math.pow(cabin, 0.55) : 0
 }
 
+/**
+ * Front intake. Every mid-engined car has a mouth, and its absence is most of
+ * why this nose read as a smooth blank mass — a face needs an aperture. Same
+ * trick as the side intakes: a lens in parameter space that tapers to a point
+ * at both ends, so the opening follows the grid instead of stamping a rectangle
+ * across it.
+ */
+export const MOUTH_CENTRE = -1.15 // below the shoulder, on the nose's lower face
+export function mouthAperture(u: number): number {
+  const t = (u - 0.935) / 0.075
+  return Math.abs(t) < 1 ? 0.42 * Math.pow(1 - t * t, 0.5) : 0
+}
+
 /** Angular half-height of the side intake, and the angle it is centred on. */
 export const INTAKE_CENTRE = -0.14
 export function intakeAperture(u: number): number {
@@ -358,6 +379,16 @@ function surfaceAtParam(u: number, theta: number): Surface {
       Math.abs(wrap(theta - Math.PI + INTAKE_CENTRE))
     )
     if (flank < aperture) return 'carbon'
+  }
+
+  // Front intake, mirrored about the centreline like every other flank rule.
+  const mouth = mouthAperture(u)
+  if (mouth > 0) {
+    const face = Math.min(
+      Math.abs(wrap(theta - MOUTH_CENTRE)),
+      Math.abs(wrap(theta - Math.PI + MOUTH_CENTRE))
+    )
+    if (face < mouth) return 'carbon'
   }
 
   // Underbody, sills and diffuser: a band centred on the bottom, opening out

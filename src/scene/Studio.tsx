@@ -97,6 +97,16 @@ function StudioRig() {
         <Lightformer form="ring" intensity={3 * k} position={[-4, 1, 6]} scale={3} target={[0, 0, 0]} color="#ffffff" />
         {/* fill for the rear three-quarter shot, where the deck would go flat */}
         <Lightformer form="rect" intensity={3.4 * k} position={[-5, 3, 5]} scale={[4, 2.4, 1]} target={[0, 0, 0]} color="#dce8ff" />
+        {/*
+          Low kickers at wheel height. A rim is metal, and metal shows its shape
+          only through what it reflects — every strip in this rig sat above the
+          car, so the wheels had nothing but dark floor to mirror and came back
+          at luminance 2, darker than the empty background behind the car. These
+          three sit at hub height and aim into the arches.
+        */}
+        <Lightformer form="rect" intensity={3.6 * k} position={[3.8, 0.6, 3.4]} scale={[3.4, 0.55, 1]} target={[0, 0.36, 0]} color="#e2ebff" />
+        <Lightformer form="rect" intensity={3.6 * k} position={[-3.8, 0.6, 3.4]} scale={[3.4, 0.55, 1]} target={[0, 0.36, 0]} color="#e2ebff" />
+        <Lightformer form="rect" intensity={2.6 * k} position={[0, 0.52, -4.4]} scale={[4.6, 0.45, 1]} target={[0, 0.36, 0]} color="#cddffb" />
       </group>
     </Environment>
   )

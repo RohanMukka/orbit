@@ -132,6 +132,113 @@ export function buildDucktail() {
   return merge(parts)
 }
 
+/**
+ * Walks the tail ring for the point nearest a target height on one side. The
+ * rear fascia is a flat cap, so anything laid across it is a straight chord —
+ * but the chord's length depends on the loft, and hand-guessing it is how the
+ * old tail lamps ended up buried inside the bodywork. Ask the surface instead.
+ */
+function tailPointAtHeight(u: number, targetY: number, side: number) {
+  let best: { x: number; y: number; z: number } | null = null
+  for (let k = 0; k <= 240; k++) {
+    const t = k / 240
+    const th = side > 0 ? -0.7 + t * 2.0 : Math.PI + 0.7 - t * 2.0
+    const p = bodyPoint(u, th)
+    if (!best || Math.abs(p.y - targetY) < Math.abs(best.y - targetY)) best = p
+  }
+  return best!
+}
+
+/**
+ * Full-width tail bar. Four separate blades left the back of the car reading as
+ * two unrelated pairs with a blank panel between them; one continuous light
+ * across the fascia is the single strongest rear signature a modern car has,
+ * and it gives the Kamm tail a horizontal to sit on.
+ */
+export function buildTailBar() {
+  const U = 0 // the tail ring; anything forward of this is inside the car
+  const Y = 0.8
+  const r = tailPointAtHeight(U, Y, 1)
+  const l = tailPointAtHeight(U, Y, -1)
+  const halfSpan = Math.min(Math.abs(r.z), Math.abs(l.z)) * 0.86
+  const bar = new THREE.BoxGeometry(0.05, 0.045, halfSpan * 2)
+  bar.translate(r.x - 0.012, Y, 0)
+  return bar
+}
+
+/** Slatted vent under the tail bar — the rear panel had nothing on it at all. */
+export function buildRearVent() {
+  const parts: THREE.BufferGeometry[] = []
+  const U = 0
+  for (let i = 0; i < 4; i++) {
+    const y = 0.62 - i * 0.055
+    const r = tailPointAtHeight(U, y, 1)
+    const l = tailPointAtHeight(U, y, -1)
+    const half = Math.min(Math.abs(r.z), Math.abs(l.z)) * 0.66
+    if (half < 0.05) continue
+    const slat = new THREE.BoxGeometry(0.035, 0.02, half * 2)
+    slat.translate(r.x - 0.008, y, 0)
+    parts.push(slat)
+  }
+  return merge(parts)
+}
+
+/**
+ * Cockpit. The canopy was transmitting a dark environment through a dark tint,
+ * so the glass came back as a black panel — glass only reads as glass when
+ * there is something behind it to see. None of this needs to be accurate; it
+ * needs to be legible at a glance through a windscreen.
+ */
+export function buildInterior() {
+  const parts: THREE.BufferGeometry[] = []
+
+  const pan = new THREE.BoxGeometry(1.7, 0.04, 1.05)
+  pan.translate(0.34, 0.44, 0)
+  parts.push(pan)
+
+  const console_ = new THREE.BoxGeometry(0.86, 0.16, 0.17)
+  console_.translate(0.42, 0.53, 0)
+  parts.push(console_)
+
+  // Dashboard and screen cowl, tucked under the windscreen header.
+  const dash = new THREE.BoxGeometry(0.26, 0.17, 0.94)
+  dash.rotateZ(-0.22)
+  dash.translate(0.99, 0.73, 0)
+  parts.push(dash)
+
+  const wheelRim = new THREE.TorusGeometry(0.115, 0.017, 10, 26)
+  wheelRim.rotateY(Math.PI / 2)
+  wheelRim.rotateZ(0.34)
+  wheelRim.translate(0.83, 0.73, 0.3)
+  parts.push(wheelRim)
+
+  for (const sd of [1, -1]) {
+    const base = new THREE.BoxGeometry(0.52, 0.09, 0.44)
+    base.translate(0.28, 0.52, sd * 0.3)
+    parts.push(base)
+
+    const back = new THREE.BoxGeometry(0.13, 0.46, 0.44)
+    back.rotateZ(0.2)
+    back.translate(-0.02, 0.74, sd * 0.3)
+    parts.push(back)
+
+    const headrest = new THREE.BoxGeometry(0.12, 0.15, 0.26)
+    headrest.rotateZ(0.2)
+    headrest.translate(-0.08, 0.98, sd * 0.3)
+    parts.push(headrest)
+
+    // Roll hoop behind each seat — reads through the rear of the canopy.
+    // Crown must clear the roofline: roof is 1.131 at this station, and the
+    // torus adds radius + tube = 0.192 to whatever base it is given.
+    const hoop = new THREE.TorusGeometry(0.17, 0.022, 8, 20, Math.PI)
+    hoop.rotateY(Math.PI / 2)
+    hoop.translate(-0.16, 0.9, sd * 0.3)
+    parts.push(hoop)
+  }
+
+  return merge(parts)
+}
+
 /** Camera-pod mirrors on thin stalks. */
 export function buildMirrors() {
   const parts: THREE.BufferGeometry[] = []
@@ -221,8 +328,9 @@ function trimLoop(
 /**
  * A lip around each wheel arch — the highest-yield edge on a car body. Without
  * one the tyre dissolves into the dark underbody and the wheels read as
- * undersized even when the package is right (this car is 6.6 wheel diameters
- * long, which is nearly exactly a real mid-engined hypercar).
+ * undersized even when the package is right (this car is 6.39 wheel diameters
+ * long, the same as a 720S; at the 0.40m radius it briefly carried it was 5.75,
+ * which is Hot Wheels proportion and read as a toy).
  *
  * The arch is already carved onto a circle at each axle, so the lip only has to
  * find where that circle meets the flank: walk the section at the arch height
