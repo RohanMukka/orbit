@@ -39,6 +39,7 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
   const group = useRef<THREE.Group>(null!)
   const offsetRef = useRef<THREE.Group>(null!)
   const tireMatRef = useRef<THREE.MeshStandardMaterial>(null!)
+  const caliperMatRef = useRef<THREE.MeshStandardMaterial>(null!)
   const tire = useMemo(() => buildTire(width), [width])
   const rimGeo = useMemo(() => buildRim(width), [width])
   const brake = useMemo(() => buildBrake(), [])
@@ -83,6 +84,13 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
       }
     }
 
+    if (caliperMatRef.current) {
+      const scrollVel = s.scrollVelocity || 0
+      // Brake dive/heat: scrolling UP produces negative velocity
+      const brakingHeat = scrollVel < -5 ? Math.min(4.0, Math.abs(scrollVel) * 0.05) : 0
+      caliperMatRef.current.emissiveIntensity = THREE.MathUtils.damp(caliperMatRef.current.emissiveIntensity, 0.25 + brakingHeat, 3, dt)
+    }
+
     const scaleYZ = s.launching ? 1.3 : 1.0
     group.current.scale.y = THREE.MathUtils.damp(group.current.scale.y, scaleYZ, 5, dt)
     group.current.scale.z = THREE.MathUtils.damp(group.current.scale.z, scaleYZ * side, 5, dt)
@@ -114,7 +122,7 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
       </group>
       {!study && (
         <mesh geometry={caliper} position={[0, 0, -side * width * 0.16]}>
-          <meshStandardMaterial {...clip} color="#ff4d1c" emissive="#ff2d00" emissiveIntensity={0.25} roughness={0.4} />
+          <meshStandardMaterial ref={caliperMatRef} {...clip} color="#ff4d1c" emissive="#ff2d00" emissiveIntensity={0.25} roughness={0.4} />
         </mesh>
       )}
       </group>
