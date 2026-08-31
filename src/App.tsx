@@ -79,13 +79,27 @@ function useScrollDriver() {
     lenis.on('scroll', read)
 
     let rafId = 0
+    let lastT = 0
+    /**
+     * Time constant for both the decay of the raw reading and the chase toward
+     * it. Expressed per second, not per frame: a per-frame coefficient damps
+     * twice as hard on a 120Hz display and half as hard on a machine dropping
+     * to 30fps, which is exactly when the shake is worst and the smoothing is
+     * needed most. exp(-9 dt) is 0.86 at 60fps, so the curve is unchanged
+     * there and now holds at any refresh rate.
+     */
+    const VEL_LAMBDA = 9
+
     function raf(time: number) {
       lenis.raf(time)
+      const dt = lastT ? Math.min(0.1, (time - lastT) / 1000) : 1 / 60
+      lastT = time
+      const k = Math.exp(-VEL_LAMBDA * dt)
       // Decay the raw reading as well as chasing it, so the smoothed value
       // settles to a true zero when the scroll stops rather than freezing on
       // whatever the last event happened to carry.
-      velRaw *= 0.86
-      velSmooth += (velRaw - velSmooth) * 0.14
+      velRaw *= k
+      velSmooth += (velRaw - velSmooth) * (1 - k)
       if (Math.abs(velSmooth) < 0.05) velSmooth = 0
       set({ scrollVelocity: velSmooth })
       rafId = requestAnimationFrame(raf)
