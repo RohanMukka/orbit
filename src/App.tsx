@@ -17,6 +17,8 @@ import { FloorDust } from './scene/FloorDust'
 import { Overlay } from './ui/Overlay'
 import { set, peek, viewLocked, useStore } from './state'
 import * as audio from './audio'
+import Lenis from 'lenis'
+import 'lenis/dist/lenis.css'
 
 function LoadFlag() {
   const { progress } = useProgress()
@@ -77,6 +79,20 @@ export function App() {
   useScrollDriver()
   const rain = useStore(s => s.rain)
   useEffect(() => { audio.setRain(rain) }, [rain])
+
+  useEffect(() => {
+    const lenis = new Lenis()
+    let rafId = 0
+    function raf(time: number) {
+      lenis.raf(time)
+      rafId = requestAnimationFrame(raf)
+    }
+    rafId = requestAnimationFrame(raf)
+    return () => {
+      cancelAnimationFrame(rafId)
+      lenis.destroy()
+    }
+  }, [])
 
   return (
     <>
