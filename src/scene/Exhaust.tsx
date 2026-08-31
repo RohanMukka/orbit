@@ -7,6 +7,7 @@ function ThrusterFlames() {
   const mesh1 = useRef<THREE.Mesh>(null!)
   const mesh2 = useRef<THREE.Mesh>(null!)
   const matRef = useRef<THREE.MeshBasicMaterial>(null!)
+  const matRef2 = useRef<THREE.MeshBasicMaterial>(null!)
   const launching = useStore(s => s.launching)
   const ltRef = useRef(0)
 
@@ -55,14 +56,23 @@ function ThrusterFlames() {
     mesh1.current.position.set(x, 0.5, 0.6)
     mesh2.current.position.set(x, 0.5, -0.6)
 
-    const velSurge = 1.0 + Math.abs(peek().scrollVelocity || 0) * 0.02
+    const velSurge = 1.0 + Math.max(0, peek().scrollVelocity || 0) * 0.05 // Only surge on acceleration
     const t = state.clock.elapsedTime
+    
+    // X scale is width, Y scale is length due to cone rotation
     const s1x = (0.8 + Math.sin(t * 80) * 0.2 + Math.cos(t * 43) * 0.2) * velSurge
-    const s1y = (0.8 + Math.sin(t * 70) * 0.2 + Math.cos(t * 51) * 0.2) * velSurge
+    const s1y = (0.8 + Math.sin(t * 70) * 0.2 + Math.cos(t * 51) * 0.2) * (1.0 + Math.max(0, peek().scrollVelocity || 0) * 0.02)
     const s2x = (0.8 + Math.sin(t * 85) * 0.2 + Math.cos(t * 40) * 0.2) * velSurge
-    const s2y = (0.8 + Math.sin(t * 75) * 0.2 + Math.cos(t * 48) * 0.2) * velSurge
-    mesh1.current.scale.set(s1x, s1y, 1)
-    mesh2.current.scale.set(s2x, s2y, 1)
+    const s2y = (0.8 + Math.sin(t * 75) * 0.2 + Math.cos(t * 48) * 0.2) * (1.0 + Math.max(0, peek().scrollVelocity || 0) * 0.02)
+    mesh1.current.scale.set(s1x, s1y, s1x)
+    mesh2.current.scale.set(s2x, s2y, s2x)
+    
+    if (matRef.current) {
+        matRef.current.opacity = 0.8 + Math.min(0.2, Math.max(0, peek().scrollVelocity || 0) * 0.01)
+    }
+    if (matRef2.current) {
+        matRef2.current.opacity = 0.8 + Math.min(0.2, Math.max(0, peek().scrollVelocity || 0) * 0.01)
+    }
   })
 
   return (
@@ -73,7 +83,7 @@ function ThrusterFlames() {
       </mesh>
       <mesh ref={mesh2} rotation={[0, 0, -Math.PI / 2]} visible={false}>
         <coneGeometry args={[0.2, 1.5, 16]} />
-        <meshBasicMaterial color="#00ffff" transparent opacity={0.8} blending={THREE.AdditiveBlending} depthWrite={false} />
+        <meshBasicMaterial ref={matRef2} color="#00ffff" transparent opacity={0.8} blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
     </group>
   )
