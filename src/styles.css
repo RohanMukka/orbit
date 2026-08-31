@@ -359,7 +359,7 @@ button, a, .design__handle, .swatch, .chip { cursor: none; }
   bottom: var(--edge);
   z-index: 5;
   width: 268px;
-  max-height: calc(100vh - 140px);
+  max-height: calc(100vh - 190px);
   overflow-y: auto;
   scrollbar-width: none;
   padding: 16px 18px 18px;
