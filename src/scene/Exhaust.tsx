@@ -19,8 +19,10 @@ function ThrusterFlames() {
       if (peek().launching) {
         targetColor.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
         matRef.current.color.lerp(targetColor, 0.1)
+        if (matRef2.current) matRef2.current.color.lerp(targetColor, 0.1)
       } else {
         matRef.current.color.lerp(cyanColor, 0.1)
+        if (matRef2.current) matRef2.current.color.lerp(cyanColor, 0.1)
       }
       
       // Sync the second mesh's material color if it's separate
