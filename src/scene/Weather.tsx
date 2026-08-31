@@ -64,6 +64,11 @@ export function CyberRain() {
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
     }
+    
+    // Dynamically render more rain particles when moving fast!
+    const baseCount = 200
+    const velCount = Math.abs(s.scrollVelocity || 0) * 0.15
+    meshRef.current.count = Math.min(COUNT, Math.floor(baseCount + velCount))
     meshRef.current.instanceMatrix.needsUpdate = true
 
     if (matRef.current) {
@@ -103,8 +108,9 @@ export function RainSplashes() {
     const launching = peek().launching
 
     let spawned = 0
+    const spawnTarget = (launching ? 15 : 5) + Math.floor(Math.abs(peek().scrollVelocity || 0) * 0.05)
     // Spawn new splashes
-    for (let i = 0; i < 500 && spawned < (launching ? 15 : 5); i++) {
+    for (let i = 0; i < 500 && spawned < spawnTarget; i++) {
       if (data[i].life <= 0) {
         data[i].life = 1.0
         data[i].x = (Math.random() - 0.5) * 10

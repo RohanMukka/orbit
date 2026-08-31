@@ -282,7 +282,8 @@ export function Overlay() {
       <div className="ui-container" style={{ 
         opacity: mounted ? 1 : 0, 
         transition: 'opacity 2s ease-out, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)', 
-        transform: transformStr 
+        transform: transformStr,
+        backdropFilter: 'blur(3px)'
       }}>
         <Cursor />
         <Boot />

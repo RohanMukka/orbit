@@ -137,8 +137,9 @@ export function Rig() {
       nextTarget.y += 0.78
     }
 
-    // gentle idle drift, plus pointer parallax
+    // Elegant cinematic camera target breathing
     const time = state.clock.elapsedTime
+    nextTarget.y += Math.sin(time * 0.5) * 0.05
     pointer.current.lerp(state.pointer, 1 - Math.pow(0.001, dt))
     const swing = s.entered ? 1 : 0.35
     nextPos.x += Math.sin(time * 0.19) * 0.22 * swing + pointer.current.x * 0.75
