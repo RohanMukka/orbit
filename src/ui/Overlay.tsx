@@ -266,8 +266,11 @@ export function Overlay() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  const rotX = launching ? 2 : 0;
-  const transformStr = launching ? `scale(1.03) perspective(1000px) rotateX(${rotX}deg) translateY(-1%)` : 'none';
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+  const rotX = launching ? 2 : (scrollVelocity || 0) * -0.02;
+  const transformStr = `scale(${launching ? 1.03 : 1}) perspective(1000px) rotateX(${rotX}deg) translateY(${launching ? -1 : 0}%)`;
 
   return (
     <>
@@ -275,7 +278,11 @@ export function Overlay() {
         position: 'fixed', inset: 0, backgroundColor: 'white', zIndex: 10000, pointerEvents: 'none',
         opacity: flash ? 1 : 0, transition: flash ? 'none' : 'opacity 0.8s ease-out'
       }} />
-      <div className="ui-container" style={{ transition: 'transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1)', transform: transformStr }}>
+      <div className="ui-container" style={{ 
+        opacity: mounted ? 1 : 0, 
+        transition: 'opacity 2s ease-out, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)', 
+        transform: transformStr 
+      }}>
         <Cursor />
         <Boot />
         {!photoMode && (

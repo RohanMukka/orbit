@@ -36,6 +36,10 @@ export function CyberDust({ count = 500 }) {
       particle.y += particle.vy * delta
       particle.z += particle.vz * delta
       
+      particle.y -= (0.2 + (s.scrollVelocity || 0) * 0.05) * delta
+      particle.x += Math.sin(state.clock.elapsedTime * 0.5 + i) * 0.02
+      particle.z += Math.cos(state.clock.elapsedTime * 0.3 + i) * 0.02
+      
       particle.z -= (s.scrollVelocity || 0) * delta * 0.1
 
       if (launching) {
