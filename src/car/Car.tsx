@@ -51,9 +51,10 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
 
   useFrame((state, dt) => {
     const s = peek()
-    let target = s.spin ? 5.4 : 0
+    const scrollBoost = (s.scrollVelocity || 0) * 0.1
+    let target = (s.spin ? 5.4 : 0) + scrollBoost
     if (s.launching) target = 100.0 // Burnout speeds
-    group.current.userData.v = THREE.MathUtils.damp(group.current.userData.v ?? 0, target, 1.6, dt)
+    group.current.userData.v = THREE.MathUtils.damp(group.current.userData.v ?? 0, Math.max(0, target), 2.5, dt)
     group.current.rotation.z -= group.current.userData.v * dt
 
     const targetExploded = s.exploded ? 1 : 0
@@ -436,12 +437,12 @@ export function Car(props: ComponentProps<'group'>) {
 
     if (headlightsGroupRef.current) {
       if (revealed.current < 3.0) {
-        headlightsGroupRef.current.visible = Math.random() > 0.5;
+        headlightsGroupRef.current.visible = Math.sin(state.clock.elapsedTime * 20.0) > 0;
       } else {
         if (peek().launching) {
-          const on = Math.random() > 0.1;
-          headlightsGroupRef.current.visible = on;
-          if (headMatRef.current) headMatRef.current.emissiveIntensity = on ? (st.night ? 6.0 : 0.5) : 0;
+          const pulse = Math.sin(state.clock.elapsedTime * 50.0)
+          headlightsGroupRef.current.visible = true;
+          if (headMatRef.current) headMatRef.current.emissiveIntensity = (st.night ? 6.0 : 0.5) + pulse * 2.0;
         } else {
           headlightsGroupRef.current.visible = true;
           if (headMatRef.current) headMatRef.current.emissiveIntensity = st.night ? 6.0 : 0.5;
@@ -474,10 +475,13 @@ export function Car(props: ComponentProps<'group'>) {
     }
 
     if (groupRef.current) {
-      const targetPitch = (launching ? 0.05 : 0.0) + (peek().scrollVelocity || 0) * 0.001
-      const targetRoll = launching ? 0.05 : (state.pointer.x * 0.02)
-      groupRef.current.rotation.z = THREE.MathUtils.damp(groupRef.current.rotation.z, targetPitch, 4, dt)
-      groupRef.current.rotation.x = THREE.MathUtils.damp(groupRef.current.rotation.x, targetRoll, 4, dt)
+      const scrollVel = peek().scrollVelocity || 0
+      const targetPitch = (launching ? 0.05 : 0.0) + scrollVel * 0.001
+      const targetRoll = launching ? 0.05 : (state.pointer.x * 0.05)
+      
+      const springFactor = launching ? 10 : 3
+      groupRef.current.rotation.z = THREE.MathUtils.damp(groupRef.current.rotation.z, targetPitch, springFactor, dt)
+      groupRef.current.rotation.x = THREE.MathUtils.damp(groupRef.current.rotation.x, targetRoll, springFactor, dt)
     }
 
     if (underglowRef.current) {

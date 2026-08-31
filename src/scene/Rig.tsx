@@ -149,7 +149,8 @@ export function Rig() {
     fov += Math.abs(s.scrollVelocity) * 0.1
 
     if (s.launching) {
-      const targetFov = 95 + (camera.userData.lt || 0) * 15.0
+      const surge = Math.sin(time * 15.0) * 2.0
+      const targetFov = 95 + (camera.userData.lt || 0) * 15.0 + surge
       fov = THREE.MathUtils.damp(fov, Math.min(130, targetFov), 3, dt)
     }
 
@@ -178,8 +179,9 @@ export function Rig() {
     camera.position.lerp(nextPos, 1 - Math.pow(0.0015, dt))
     target.current.lerp(nextTarget, 1 - Math.pow(0.002, dt))
 
-    const targetBank = s.scrollVelocity * -0.002
-    bank.current = THREE.MathUtils.damp(bank.current, targetBank, 5, dt)
+    const steerBank = state.pointer.x * -0.1
+    const targetBank = (s.scrollVelocity * -0.002) + steerBank
+    bank.current = THREE.MathUtils.damp(bank.current, targetBank, 3, dt)
     camera.up.set(Math.sin(bank.current), Math.cos(bank.current), 0).normalize()
 
     camera.lookAt(target.current)
