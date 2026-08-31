@@ -25,6 +25,9 @@ export function CyberDust({ count = 500 }) {
 
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
+  const targetColor = useMemo(() => new THREE.Color(), [])
+  const whiteColor = useMemo(() => new THREE.Color('#ffffff'), [])
+
   useFrame((state, delta) => {
     if (!mesh.current) return
     
@@ -67,9 +70,10 @@ export function CyberDust({ count = 500 }) {
 
     if (matRef.current) {
       if (launching) {
-        matRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+        targetColor.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+        matRef.current.color.lerp(targetColor, 0.1)
       } else {
-        matRef.current.color.set('#ffffff')
+        matRef.current.color.lerp(whiteColor, 0.1)
       }
     }
   })

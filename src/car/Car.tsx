@@ -46,6 +46,9 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
   const side = Math.sign(z)
   const study = view !== 'render'
 
+  const targetColor = useMemo(() => new THREE.Color(), [])
+  const orangeColor = useMemo(() => new THREE.Color('#ff4400'), [])
+
   useFrame((state, dt) => {
     const s = peek()
     let target = s.spin ? 5.4 : 0
@@ -70,9 +73,10 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
     if (tireMatRef.current) {
       tireMatRef.current.emissiveIntensity = THREE.MathUtils.damp(tireMatRef.current.emissiveIntensity, targetGlow, 2, dt)
       if (s.launching) {
-        tireMatRef.current.emissive.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+        targetColor.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+        tireMatRef.current.emissive.lerp(targetColor, 0.1)
       } else {
-        tireMatRef.current.emissive.set('#ff4400')
+        tireMatRef.current.emissive.lerp(orangeColor, 0.1)
       }
     }
 
@@ -450,6 +454,10 @@ export function Car(props: ComponentProps<'group'>) {
   const showBlueprint = blueprint || revealed.current < 3.0
   const showShell = !blueprint || revealed.current < 3.0
 
+  const targetColor = useMemo(() => new THREE.Color(), [])
+  const cyanColor = useMemo(() => new THREE.Color('#00e5ff'), [])
+  const wireColor = useMemo(() => new THREE.Color('#00ffcc'), [])
+
   useFrame((state, dt) => {
     const launching = peek().launching
 
@@ -475,13 +483,14 @@ export function Car(props: ComponentProps<'group'>) {
 
     if (underglowRef.current) {
       if (launching) {
-        underglowRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+        targetColor.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+        underglowRef.current.color.lerp(targetColor, 0.1)
       } else {
-        underglowRef.current.color.set('#00e5ff')
+        underglowRef.current.color.lerp(cyanColor, 0.1)
       }
 
       const targetIntensity = (launching
-        ? Math.random() * 50.0 + 10.0
+        ? 15.0 + Math.sin(state.clock.elapsedTime * 30.0) * 10.0
         : Math.abs(Math.sin(state.clock.elapsedTime * 4.0)) * 5.0 + 5.0) + Math.abs(peek().scrollVelocity || 0) * 0.3
       underglowRef.current.intensity = THREE.MathUtils.damp(
         underglowRef.current.intensity,
