@@ -133,20 +133,37 @@ export function buildDucktail() {
 }
 
 /**
- * Walks the tail ring for the point nearest a target height on one side. The
- * rear fascia is a flat cap, so anything laid across it is a straight chord —
- * but the chord's length depends on the loft, and hand-guessing it is how the
- * old tail lamps ended up buried inside the bodywork. Ask the surface instead.
+ * The horizontal contour of the rear fascia at a given height.
+ *
+ * The fascia is not a flat disc. buildBodyGeometry closes the tail with a fan
+ * from the u=0 ring (x = -2.30) to a centre pushed 45mm further aft
+ * (x = -2.345), so it is a shallow dome. Laying a straight bar across it puts
+ * the bar 33mm inside the body at the centreline and hanging in space at the
+ * tips — the first attempt overhung by 0.58m a side.
+ *
+ * Each fan triangle is ruled from a ring vertex to that centre, so a point on
+ * the cap is ring + s * (centre - ring). Solve that for the s where the height
+ * is the one asked for, and the locus is the contour the fascia actually has.
  */
-function tailPointAtHeight(u: number, targetY: number, side: number) {
-  let best: { x: number; y: number; z: number } | null = null
-  for (let k = 0; k <= 240; k++) {
-    const t = k / 240
-    const th = side > 0 ? -0.7 + t * 2.0 : Math.PI + 0.7 - t * 2.0
-    const p = bodyPoint(u, th)
-    if (!best || Math.abs(p.y - targetY) < Math.abs(best.y - targetY)) best = p
+function capContourAtHeight(targetY: number) {
+  const capX = -CAR.length / 2 - 0.045
+  const capY = (0.98 + 0.44) * 0.5 // roof and floor at the tail ring
+  const ringX = -CAR.length / 2
+  const pts: THREE.Vector3[] = []
+  for (let k = 0; k <= 200; k++) {
+    const th = -Math.PI / 2 + (k / 200) * Math.PI * 2
+    const p = bodyPoint(0, th)
+    const denom = capY - p.y
+    if (Math.abs(denom) < 1e-4) continue
+    const s = (targetY - p.y) / denom
+    if (s < 0 || s > 1) continue
+    pts.push(new THREE.Vector3(ringX + s * (capX - ringX), targetY, p.z * (1 - s)))
   }
-  return best!
+  pts.sort((a, b) => a.z - b.z)
+  // Drop near-duplicate columns so the spline through them stays well behaved.
+  const kept: THREE.Vector3[] = []
+  for (const q of pts) if (!kept.length || Math.abs(q.z - kept[kept.length - 1].z) > 0.012) kept.push(q)
+  return kept
 }
 
 /**
@@ -156,29 +173,22 @@ function tailPointAtHeight(u: number, targetY: number, side: number) {
  * and it gives the Kamm tail a horizontal to sit on.
  */
 export function buildTailBar() {
-  const U = 0 // the tail ring; anything forward of this is inside the car
-  const Y = 0.8
-  const r = tailPointAtHeight(U, Y, 1)
-  const l = tailPointAtHeight(U, Y, -1)
-  const halfSpan = Math.min(Math.abs(r.z), Math.abs(l.z)) * 0.86
-  const bar = new THREE.BoxGeometry(0.05, 0.045, halfSpan * 2)
-  bar.translate(r.x - 0.012, Y, 0)
-  return bar
+  const pts = capContourAtHeight(0.8)
+  if (pts.length < 4) return new THREE.BufferGeometry()
+  // Sit it a few millimetres proud of the dome it is tracing.
+  const path = pts.map((p) => new THREE.Vector3(p.x - 0.014, p.y, p.z * 0.94))
+  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path), 72, 0.023, 8, false)
 }
 
 /** Slatted vent under the tail bar — the rear panel had nothing on it at all. */
 export function buildRearVent() {
   const parts: THREE.BufferGeometry[] = []
-  const U = 0
   for (let i = 0; i < 4; i++) {
-    const y = 0.62 - i * 0.055
-    const r = tailPointAtHeight(U, y, 1)
-    const l = tailPointAtHeight(U, y, -1)
-    const half = Math.min(Math.abs(r.z), Math.abs(l.z)) * 0.66
-    if (half < 0.05) continue
-    const slat = new THREE.BoxGeometry(0.035, 0.02, half * 2)
-    slat.translate(r.x - 0.008, y, 0)
-    parts.push(slat)
+    const y = 0.63 - i * 0.055
+    const pts = capContourAtHeight(y)
+    if (pts.length < 4) continue
+    const path = pts.map((p) => new THREE.Vector3(p.x - 0.008, p.y, p.z * 0.7))
+    parts.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path), 48, 0.011, 6, false))
   }
   return merge(parts)
 }

@@ -681,10 +681,10 @@ export function Car(props: ComponentProps<'group'>) {
           </>
         )}
         <mesh geometry={splitter} visible={!blueprint} castShadow={!study} ref={splitterRef}>
-          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
+          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0b0c0f" metalness={0.35} roughness={0.62} clearcoat={0.12} />}
         </mesh>
         <mesh geometry={diffuser} visible={!blueprint} castShadow={!study} ref={diffuserRef}>
-          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0b0c0f" metalness={0.4} roughness={0.45} clearcoat={0.6} />}
+          {study ? <StudyMaterial view={view} /> : <meshPhysicalMaterial {...clip} transparent color="#0b0c0f" metalness={0.35} roughness={0.62} clearcoat={0.12} />}
         </mesh>
 
       {/* Housings sit outside the emissive group so they stay dark. */}
