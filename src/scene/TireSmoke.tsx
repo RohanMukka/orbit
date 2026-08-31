@@ -41,8 +41,9 @@ export function TireSmoke() {
         const p = particles[spawnIndex.current]
         p.active = true
         p.age = 0
+        const scrollVel = peek().scrollVelocity || 0
         p.lifetime = 1 + Math.random() * 0.5
-        p.scale = 0.5 + Math.random() * 0.5
+        p.scale = 0.5 + Math.random() * 0.5 + Math.max(0, scrollVel * 0.05)
         
         const tire = tirePositions[Math.floor(Math.random() * tirePositions.length)]
         
@@ -52,10 +53,11 @@ export function TireSmoke() {
           (Math.random() - 0.5) * 0.5
         ))
         
+        const steerForce = Math.abs(state.pointer.x) > 0.2 ? state.pointer.x * 2.0 : 0
         p.velocity.set(
           -1 + (Math.random() - 0.5) * 0.5,
           0.5 + Math.random() * 0.5,
-          (Math.random() - 0.5) * 0.2
+          steerForce + (Math.random() - 0.5) * 0.2
         )
         
         spawnIndex.current = (spawnIndex.current + 1) % COUNT
