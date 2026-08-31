@@ -113,6 +113,12 @@ export function Rig() {
       nextPos.set(Math.cos(time * 0.2) * 7.5, 2.4 + Math.sin(time * 0.1) * 0.5, Math.sin(time * 0.2) * 7.5)
       nextTarget.set(0, 0.6, 0)
       offset = 0
+    } else if (s.photoMode) {
+      const time = state.clock.elapsedTime * 0.1
+      const dist2 = nextPos.distanceTo(nextTarget)
+      nextPos.x = nextTarget.x + Math.sin(time) * dist2
+      nextPos.z = nextTarget.z + Math.cos(time) * dist2
+      offset = 0
     }
 
     forward.subVectors(nextTarget, nextPos).normalize()
