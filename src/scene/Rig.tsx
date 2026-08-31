@@ -150,7 +150,7 @@ export function Rig() {
     nextTarget.x += (s.scrollVelocity || 0) * 0.0005
     nextTarget.z += (s.scrollVelocity || 0) * -0.0002
 
-    fov += Math.abs(s.scrollVelocity) * 0.1
+    fov += Math.abs(s.scrollVelocity || 0) * 0.1
 
     if (s.launching) {
       const surge = Math.sin(time * 15.0) * 2.0
@@ -184,7 +184,7 @@ export function Rig() {
     target.current.lerp(nextTarget, 1 - Math.pow(0.002, dt))
 
     const steerBank = state.pointer.x * -0.1
-    const targetBank = (s.scrollVelocity * -0.002) + steerBank
+    const targetBank = ((s.scrollVelocity || 0) * -0.002) + steerBank
     bank.current = THREE.MathUtils.damp(bank.current, targetBank, 3, dt)
     camera.up.set(Math.sin(bank.current), Math.cos(bank.current), 0).normalize()
 

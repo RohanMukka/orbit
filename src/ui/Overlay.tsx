@@ -41,7 +41,7 @@ function Telemetry() {
       </div>
       <div className="hud__row">
         <span className="hud__k">G-Force</span>
-        <span className="hud__v">{(1.0 + Math.abs(scrollVelocity) * 15).toFixed(2) + 'G'}</span>
+        <span className="hud__v">{(1.0 + Math.abs(scrollVelocity || 0) * 15).toFixed(2) + 'G'}</span>
       </div>
       <div className="hud__bar">
         <i style={{ transform: `scaleX(${progress})` }} />

@@ -51,7 +51,7 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
 
   useFrame((state, dt) => {
     const s = peek()
-    const rwdBias = !front && s.scrollVelocity > 50 ? (s.scrollVelocity * 0.05) : 0
+    const rwdBias = !front && (s.scrollVelocity || 0) > 50 ? ((s.scrollVelocity || 0) * 0.05) : 0
     const scrollBoost = (s.scrollVelocity || 0) * 0.1
     let target = (s.spin ? 5.4 : 0) + scrollBoost + rwdBias
     if (s.launching) target = 100.0 // Burnout speeds
