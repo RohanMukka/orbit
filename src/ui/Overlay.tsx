@@ -282,8 +282,8 @@ export function Overlay() {
         opacity: flash ? 1 : 0, transition: flash ? 'none' : 'opacity 0.8s ease-out'
       }} />
       <div className="ui-container" style={{ 
-        opacity: mounted ? 1 : 0, 
-        transition: 'opacity 2s ease-out, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)', 
+        opacity: mounted ? (photoMode ? 0 : 1) : 0, 
+        transition: 'opacity 2s ease-out, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), backdrop-filter 2s ease-out', 
         transform: transformStr,
         backdropFilter: 'blur(3px)'
       }}>

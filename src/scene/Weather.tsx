@@ -136,8 +136,10 @@ export function RainSplashes() {
       d.life -= dt * 4.0
       d.scale += dt * (launching ? 15.0 : 5.0)
       
+      const scrollVel = peek().scrollVelocity || 0
       dummy.position.set(d.x, 0.01, d.z)
-      dummy.scale.set(d.scale, d.scale, d.scale)
+      dummy.scale.set(d.scale, d.scale, d.scale + Math.abs(scrollVel) * 0.05)
+      dummy.rotation.x = -Math.PI / 2
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
     }
@@ -157,8 +159,8 @@ export function RainSplashes() {
 
   return (
     <instancedMesh ref={meshRef} args={[undefined as any, undefined as any, 500]}>
-      <boxGeometry args={[0.02, 0.02, 0.02]} />
-      <meshBasicMaterial ref={matRef} color="#ffffff" transparent depthWrite={false} />
+      <circleGeometry args={[0.05, 8]} />
+      <meshBasicMaterial ref={matRef} color="#ffffff" transparent opacity={0.5} depthWrite={false} />
     </instancedMesh>
   )
 }

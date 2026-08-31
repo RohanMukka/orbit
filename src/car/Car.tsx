@@ -467,6 +467,7 @@ export function Car(props: ComponentProps<'group'>) {
 
   const targetColor = useMemo(() => new THREE.Color(), [])
   const cyanColor = useMemo(() => new THREE.Color('#00e5ff'), [])
+  const redColor = useMemo(() => new THREE.Color('#ff1100'), [])
 
   useFrame((state, dt) => {
     const launching = peek().launching
@@ -491,7 +492,8 @@ export function Car(props: ComponentProps<'group'>) {
     if (groupRef.current) {
       const scrollVel = peek().scrollVelocity || 0
       const targetPitch = (launching ? 0.05 : 0.0) + scrollVel * 0.001
-      const targetRoll = launching ? 0.05 : (state.pointer.x * 0.05)
+      const suspensionVibration = Math.sin(state.clock.elapsedTime * 20) * 0.005 * Math.abs(state.pointer.x)
+      const targetRoll = (launching ? 0.05 : (state.pointer.x * 0.05)) + suspensionVibration
       
       const springFactor = launching ? 10 : 3
       groupRef.current.rotation.z = THREE.MathUtils.damp(groupRef.current.rotation.z, targetPitch, springFactor, dt)
@@ -499,9 +501,12 @@ export function Car(props: ComponentProps<'group'>) {
     }
 
     if (underglowRef.current) {
+      const scrollVel = peek().scrollVelocity || 0
       if (launching) {
         targetColor.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
         underglowRef.current.color.lerp(targetColor, 0.1)
+      } else if (scrollVel < -10) {
+        underglowRef.current.color.lerp(redColor, 0.2)
       } else {
         underglowRef.current.color.lerp(cyanColor, 0.1)
       }

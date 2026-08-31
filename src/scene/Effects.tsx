@@ -20,8 +20,8 @@ export function Effects() {
     if (caRef.current) {
       const velTear = Math.abs(s.scrollVelocity || 0) * 0.0002
       const breath = Math.sin(state.clock.elapsedTime * 1.5) * 0.0005
-      const targetX = (glitch ? 0.03 : launching ? 0.015 : 0.0006 + breath) + velTear
-      const targetY = (glitch ? 0.03 : launching ? 0.015 : 0.0006 + breath) + velTear
+      const targetX = (glitch ? 0.03 : launching ? 0.015 : 0.0006 + breath) + velTear + Math.abs(state.pointer.x) * 0.002
+      const targetY = (glitch ? 0.03 : launching ? 0.015 : 0.0006 + breath) + velTear + Math.abs(state.pointer.y) * 0.002
       caRef.current.offset.x = THREE.MathUtils.damp(caRef.current.offset.x, targetX, dampFactor, dt)
       caRef.current.offset.y = THREE.MathUtils.damp(caRef.current.offset.y, targetY, dampFactor, dt)
     }
