@@ -1,12 +1,12 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { useStore } from '../state'
+import { useStore, peek } from '../state'
 
 const COUNT = 200
 
 export function TireSmoke() {
-  const meshRef = useRef<THREE.InstancedMesh>(null)
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
   const spin = useStore((s) => s.spin)
   const launching = useStore((s) => s.launching)
   
@@ -32,7 +32,7 @@ export function TireSmoke() {
     new THREE.Vector3(-1.8, 0, -1.2),
   ], [])
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const mesh = meshRef.current
     if (!mesh) return
     
