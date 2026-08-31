@@ -1,6 +1,6 @@
 import { Suspense, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { AdaptiveDpr, Preload, useProgress } from '@react-three/drei'
+import { Preload, useProgress } from '@react-three/drei'
 import * as THREE from 'three'
 import { Car } from './car/Car'
 import { Studio } from './scene/Studio'
