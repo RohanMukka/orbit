@@ -20,9 +20,16 @@ function Telemetry() {
    * capped at 1.4px by then anyway — it was buying nothing and costing a
    * re-raster of the panel on every frame of every scroll.
    */
-  const opacity = Math.max(0.74, 1.0 - Math.abs(scrollVelocity || 0) * 0.008)
+  /**
+   * The away state has to be folded into this number, not left to the class.
+   * .hud--away sets opacity: 0, but an inline style beats a class rule every
+   * time — so the HUD never actually faded at the end of the page and came to
+   * rest on top of the outro's credits and the ignite button.
+   */
+  const away = progress > 0.9
+  const opacity = away ? 0 : Math.max(0.74, 1.0 - Math.abs(scrollVelocity || 0) * 0.008)
   return (
-    <div className={`hud hud--bl ${progress > 0.9 ? 'hud--away' : ''}`} style={{ opacity }}>
+    <div className={`hud hud--bl ${away ? 'hud--away' : ''}`} style={{ opacity }}>
       <div className="hud__row">
         <span className="hud__k">Geometry</span>
         <span className="hud__v">procedural · 0 assets</span>
