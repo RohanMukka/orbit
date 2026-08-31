@@ -276,7 +276,8 @@ export function Overlay() {
   const rattleX = vel > 30 ? Math.sin(Date.now() * 0.5) * (vel * 0.05) : 0
   const rattleY = vel > 30 ? Math.cos(Date.now() * 0.6) * (vel * 0.05) : 0
   const rotX = launching ? 2 : (scrollVelocity || 0) * -0.02;
-  const transformStr = `translate3d(${rattleX}px, ${rattleY}px, 0) scale(${launching ? 1.03 : 1}) perspective(1000px) rotateX(${rotX}deg) translateY(${launching ? -1 : 0}%)`;
+  const zPush = launching ? -50 : (scrollVelocity || 0) * 0.1;
+  const transformStr = `translate3d(${rattleX}px, ${rattleY}px, ${zPush}px) scale(${launching ? 1.03 : 1}) perspective(1000px) rotateX(${rotX}deg) translateY(${launching ? -1 : 0}%)`;
 
   return (
     <>
