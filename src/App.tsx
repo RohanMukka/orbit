@@ -35,14 +35,16 @@ function LoadFlag() {
 
 function useScrollDriver() {
   useEffect(() => {
-    let raf = 0
-    let lastScroll = window.scrollY
-    const read = () => {
-      raf = 0
-      const vel = window.scrollY - lastScroll
-      lastScroll = window.scrollY
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    })
+
+    const read = (e: any) => {
+      const scroll = e.scroll
+      const vel = e.velocity
       const max = document.documentElement.scrollHeight - window.innerHeight
-      const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0
+      const progress = max > 0 ? Math.min(1, Math.max(0, scroll / max)) : 0
       const chapter = Math.round(chapterFloat(progress))
       const prev = peek()
       if (chapter !== prev.chapter) {
@@ -61,16 +63,22 @@ function useScrollDriver() {
         audio.updateRain(prev.launching ? 500 : vel)
       }
     }
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(read)
+
+    lenis.on('scroll', read)
+
+    let rafId = 0
+    function raf(time: number) {
+      lenis.raf(time)
+      rafId = requestAnimationFrame(raf)
     }
-    read()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
+    rafId = requestAnimationFrame(raf)
+
+    // Trigger an initial read
+    read({ scroll: window.scrollY, velocity: 0 })
+
     return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
-      if (raf) cancelAnimationFrame(raf)
+      cancelAnimationFrame(rafId)
+      lenis.destroy()
     }
   }, [])
 }
@@ -79,20 +87,6 @@ export function App() {
   useScrollDriver()
   const rain = useStore(s => s.rain)
   useEffect(() => { audio.setRain(rain) }, [rain])
-
-  useEffect(() => {
-    const lenis = new Lenis()
-    let rafId = 0
-    function raf(time: number) {
-      lenis.raf(time)
-      rafId = requestAnimationFrame(raf)
-    }
-    rafId = requestAnimationFrame(raf)
-    return () => {
-      cancelAnimationFrame(rafId)
-      lenis.destroy()
-    }
-  }, [])
 
   return (
     <>

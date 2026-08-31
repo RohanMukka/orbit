@@ -316,13 +316,15 @@ export function intakeAperture(u: number): number {
 }
 
 function surfaceAtParam(u: number, theta: number): Surface {
-  if (u < 0.035 || u > 0.986) return 'carbon' // nose and tail fascias
-
-  // Canopy: a band centred on the top of the section, tapering to a point at
-  // the windscreen header and the base of the rear glass.
-  const span = canopySpan(u)
-  if (span > 0 && Math.abs(wrap(theta - Math.PI / 2)) < span) return 'glass'
-
+  const normTh = theta / TAU
+  // Canopy (windshield and side windows)
+  if (u > 0.36 && u < 0.8 && normTh > 0.18 && normTh < 0.32) return 'glass'
+  // Diffuser, underbody, and entire rear fascia (Kamm tail)
+  if (u < 0.04) return 'carbon'
+  if (u < 0.15 && (normTh > 0.85 || normTh < 0.15)) return 'carbon'
+  if (normTh > 0.9 || normTh < 0.1) return 'carbon'
+  // Front splitter
+  if (u > 0.95 && (normTh > 0.85 || normTh < 0.15)) return 'carbon'
   // Side intakes: a lens-shaped opening in the scalloped flank. A constant
   // width here would read as a rectangular sticker, so the aperture tapers to
   // a point at both ends of the scallop.
