@@ -493,7 +493,7 @@ export function Car(props: ComponentProps<'group'>) {
       const velShake = Math.abs(peek().scrollVelocity || 0) * 0.0001
       const downforce = 0.02
       groupRef.current.position.y = rumble + velShake - downforce
-      groupRef.current.position.z = Math.cos(state.clock.elapsedTime * 73) * 0.01
+      groupRef.current.position.z = Math.cos(state.clock.elapsedTime * 73) * 0.01 + velShake * 0.5
     } else if (groupRef.current) {
       const floatY = Math.sin(state.clock.elapsedTime * 1.5) * 0.008
       groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, floatY, 0.1)
