@@ -2,7 +2,7 @@ import { EffectComposer, Bloom, ChromaticAberration, Vignette, Noise, SMAA } fro
 import { BlendFunction } from 'postprocessing'
 import * as THREE from 'three'
 import { useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useStore, peek } from '../state'
 
 export function Effects() {
@@ -45,12 +45,28 @@ export function Effects() {
   })
 
   return (
-    <EffectComposer multisampling={0} enableNormalPass={false}>
-      <Bloom ref={bloomRef} intensity={0.8} luminanceThreshold={0.7} luminanceSmoothing={0.4} mipmapBlur radius={0.8} />
-      <ChromaticAberration ref={caRef} offset={ca} radialModulation modulationOffset={0.42} blendFunction={BlendFunction.NORMAL} />
-      <Vignette ref={vignetteRef} offset={0.28} darkness={0.85} />
-      <Noise ref={noiseRef} premultiply opacity={0.035} blendFunction={BlendFunction.OVERLAY} />
-      <SMAA />
-    </EffectComposer>
+    <>
+      <DynamicFog />
+      <EffectComposer multisampling={0} enableNormalPass={false}>
+        <Bloom ref={bloomRef} intensity={0.8} luminanceThreshold={0.7} luminanceSmoothing={0.4} mipmapBlur radius={0.8} />
+        <ChromaticAberration ref={caRef} offset={ca} radialModulation modulationOffset={0.42} blendFunction={BlendFunction.NORMAL} />
+        <Vignette ref={vignetteRef} offset={0.28} darkness={0.85} />
+        <Noise ref={noiseRef} premultiply opacity={0.035} blendFunction={BlendFunction.OVERLAY} />
+        <SMAA />
+      </EffectComposer>
+    </>
   )
+}
+
+function DynamicFog() {
+  const scene = useThree(s => s.scene)
+  useFrame((_, dt) => {
+    if (scene.fog && (scene.fog as THREE.FogExp2).density !== undefined) {
+      const s = peek()
+      const targetDensity = 0.031 + Math.abs(s.scrollVelocity || 0) * 0.0005
+      const fog = scene.fog as THREE.FogExp2
+      fog.density = THREE.MathUtils.damp(fog.density, targetDensity, 4, dt)
+    }
+  })
+  return null
 }
