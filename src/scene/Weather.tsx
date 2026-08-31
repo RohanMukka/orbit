@@ -27,6 +27,9 @@ export function CyberRain() {
   
   const scaleRef = useRef(1.0)
 
+  const targetColor = useMemo(() => new THREE.Color(), [])
+  const whiteColor = useMemo(() => new THREE.Color('#ffffff'), [])
+
   useFrame((state, dt) => {
     if (!rain || !meshRef.current) return
     
@@ -65,9 +68,10 @@ export function CyberRain() {
 
     if (matRef.current) {
       if (s.launching) {
-        matRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+        targetColor.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+        matRef.current.color.lerp(targetColor, 0.1)
       } else {
-        matRef.current.color.set('#ffffff')
+        matRef.current.color.lerp(whiteColor, 0.1)
       }
     }
   })
@@ -90,27 +94,38 @@ export function RainSplashes() {
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const matRef = useRef<THREE.MeshBasicMaterial>(null)
   const dummy = useMemo(() => new THREE.Object3D(), [])
-
-  const splashes = useMemo(() => {
-    return Array.from({ length: 500 }, () => ({
-      x: (Math.random() - 0.5) * 20,
-      z: (Math.random() - 0.5) * 20,
-      scale: 1.5 + Math.random(),
-    }))
-  }, [])
+  const data = useMemo(() => Array.from({ length: 500 }, () => ({ x: 0, z: 0, life: 0, scale: 0 })), [])
+  const targetColor = useMemo(() => new THREE.Color(), [])
+  const whiteColor = useMemo(() => new THREE.Color('#ffffff'), [])
 
   useFrame((state, dt) => {
-    if (!rain || !meshRef.current) return
-    
-    for (let i = 0; i < 500; i++) {
-      const d = splashes[i]
-      d.scale -= dt * 5.0
-      
-      if (d.scale <= 0) {
-        d.scale = 1.5 + Math.random()
-        d.x = (Math.random() - 0.5) * 20
-        d.z = (Math.random() - 0.5) * 20
+    if (!meshRef.current) return
+    const launching = peek().launching
+
+    let spawned = 0
+    // Spawn new splashes
+    for (let i = 0; i < 500 && spawned < (launching ? 15 : 5); i++) {
+      if (data[i].life <= 0) {
+        data[i].life = 1.0
+        data[i].x = (Math.random() - 0.5) * 10
+        data[i].z = (Math.random() - 0.5) * 10
+        data[i].scale = Math.random() * 0.5 + 0.5
+        spawned++
       }
+    }
+
+    // Update
+    for (let i = 0; i < 500; i++) {
+      const d = data[i]
+      if (d.life <= 0) {
+        dummy.position.set(0, -100, 0)
+        dummy.updateMatrix()
+        meshRef.current.setMatrixAt(i, dummy.matrix)
+        continue
+      }
+
+      d.life -= dt * 4.0
+      d.scale += dt * (launching ? 15.0 : 5.0)
       
       dummy.position.set(d.x, 0.01, d.z)
       dummy.scale.set(d.scale, d.scale, d.scale)
@@ -120,10 +135,11 @@ export function RainSplashes() {
     meshRef.current.instanceMatrix.needsUpdate = true
 
     if (matRef.current) {
-      if (peek().launching) {
-        matRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+      if (launching) {
+        targetColor.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+        matRef.current.color.lerp(targetColor, 0.1)
       } else {
-        matRef.current.color.set('#ffffff')
+        matRef.current.color.lerp(whiteColor, 0.1)
       }
     }
   })

@@ -10,9 +10,17 @@ function ThrusterFlames() {
   const launching = useStore(s => s.launching)
   const ltRef = useRef(0)
 
+  const targetColor = useMemo(() => new THREE.Color(), [])
+  const cyanColor = useMemo(() => new THREE.Color('#00ffff'), [])
+
   useFrame((state, dt) => {
-    if (matRef.current && peek().launching) {
-      matRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+    if (matRef.current) {
+      if (peek().launching) {
+        targetColor.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+        matRef.current.color.lerp(targetColor, 0.1)
+      } else {
+        matRef.current.color.lerp(cyanColor, 0.1)
+      }
       
       // Sync the second mesh's material color if it's separate
       if (mesh2.current && mesh2.current.material && mesh2.current.material !== matRef.current) {
@@ -75,6 +83,7 @@ function Shockwave() {
   const materialRef = useRef<THREE.MeshBasicMaterial>(null!)
   const launching = useStore(s => s.launching)
   const ltRef = useRef(0)
+  const targetColor = useMemo(() => new THREE.Color(), [])
 
   useFrame((state, dt) => {
     if (!launching) {
@@ -101,7 +110,8 @@ function Shockwave() {
         meshRef.current.position.set(-2.4, 0.5, 0)
       }
       
-      materialRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+      targetColor.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+      materialRef.current.color.lerp(targetColor, 0.1)
 
       const velBoost = 60 + Math.abs(peek().scrollVelocity || 0) * 0.5
       const s = THREE.MathUtils.damp(meshRef.current.scale.x, velBoost, 10, dt)
