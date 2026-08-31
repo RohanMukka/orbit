@@ -266,7 +266,7 @@ function KeyLight() {
 function Exposure() {
   useFrame((state, dt) => {
     const c = peek().chapter
-    const target = c === 3 ? 1.16 : c === 4 ? 1.06 : 1.0
+    const target = c === 3 ? 1.2 : c === 4 ? 1.1 : 1.05
     const gl = state.gl
     gl.toneMappingExposure = THREE.MathUtils.damp(gl.toneMappingExposure, target, 2.2, dt)
   })
@@ -304,7 +304,7 @@ export function Studio() {
       <ContactShadows position={[0, 0.004, 0]} opacity={0.95} scale={8} blur={1.2} far={1} resolution={512} frames={100} color="#000205" />
       <KeyLight />
       <CursorLight />
-      <ambientLight intensity={0.1} />
+      <ambientLight intensity={0.15} />
     </>
   )
 }

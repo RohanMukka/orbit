@@ -5,10 +5,7 @@ import { DesignPanel } from './Design'
 import * as audio from '../audio'
 import { BODY_RES } from '../car/body'
 
-function getHexProgress(prog: number, vel: number) {
-  if (Math.abs(vel) > 55) {
-    return Math.floor(Math.random() * 0xfff).toString(16).padStart(3, '0').toUpperCase() + '%'
-  }
+function getHexProgress(prog: number) {
   return (prog * 100).toFixed(0).padStart(3, '0') + '%'
 }
 
@@ -17,13 +14,15 @@ function Telemetry() {
   const paint = useStore((s) => s.paint)
   const chapter = useStore((s) => s.chapter)
   const scrollVelocity = useStore((s) => s.scrollVelocity)
-  // Velocity is in px/frame and regularly passes 40, so both of these have to
-  // be clamped — unbounded they took the HUD to blur(80px) at 20% opacity.
-  const vel = Math.abs(scrollVelocity || 0)
-  const blurAmount = Math.min(1.4, vel * 0.03)
-  const opacity = Math.max(0.72, 1.0 - vel * 0.01)
+  /**
+   * Opacity only. A filter whose radius changes every frame re-rasterizes the
+   * whole layer every frame; opacity is compositor-only and free. The blur was
+   * capped at 1.4px by then anyway — it was buying nothing and costing a
+   * re-raster of the panel on every frame of every scroll.
+   */
+  const opacity = Math.max(0.74, 1.0 - Math.abs(scrollVelocity || 0) * 0.008)
   return (
-    <div className={`hud hud--bl ${progress > 0.9 ? 'hud--away' : ''}`} style={{ filter: `blur(${blurAmount}px)`, opacity }}>
+    <div className={`hud hud--bl ${progress > 0.9 ? 'hud--away' : ''}`} style={{ opacity }}>
       <div className="hud__row">
         <span className="hud__k">Geometry</span>
         <span className="hud__v">procedural · 0 assets</span>
@@ -42,7 +41,7 @@ function Telemetry() {
       </div>
       <div className="hud__row">
         <span className="hud__k">Timeline</span>
-        <span className="hud__v">{getHexProgress(progress, scrollVelocity)}</span>
+        <span className="hud__v">{getHexProgress(progress)}</span>
       </div>
       <div className="hud__row">
         <span className="hud__k">G-Force</span>
@@ -291,10 +290,18 @@ export function Overlay() {
       const s = peek()
       const v = s.scrollVelocity || 0
       const vel = Math.abs(v)
-      const rattleX = vel > 30 ? Math.sin(Date.now() * 0.5) * (vel * 0.05) : 0
-      const rattleY = vel > 30 ? Math.cos(Date.now() * 0.6) * (vel * 0.05) : 0
-      const rotX = s.launching ? 2 : v * -0.02
-      const zPush = s.launching ? -50 : v * 0.1
+      /**
+       * The rattle used to run outside the launch too, driven by
+       * Math.sin(Date.now() * 0.5) — that is 500 rad/s, about 80Hz, sampled at
+       * 60fps. It was not a vibration, it was aliased noise: every frame the
+       * copy jumped to an unrelated offset. That is the earthquake. Shake now
+       * belongs to the launch alone, where it is the point.
+       */
+      const rattleX = s.launching && vel > 30 ? Math.sin(Date.now() * 0.02) * 2 : 0
+      const rattleY = s.launching && vel > 30 ? Math.cos(Date.now() * 0.023) * 2 : 0
+      const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n))
+      const rotX = s.launching ? 2 : clamp(v * -0.008, -0.5, 0.5)
+      const zPush = s.launching ? -50 : clamp(v * 0.04, -3, 3)
       el.style.transform =
         `translate3d(${rattleX}px, ${rattleY}px, ${zPush}px) scale(${s.launching ? 1.03 : 1})` +
         ` perspective(1000px) rotateX(${rotX}deg) translateY(${s.launching ? -1 : 0}%)`

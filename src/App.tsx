@@ -40,9 +40,21 @@ function useScrollDriver() {
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     })
 
+    /**
+     * Lenis reports velocity as a raw per-frame delta, and it is spiky: a
+     * wheel notch produces a spike of 50+ that collapses a frame or two later.
+     * Fifteen different effects read scrollVelocity — camera fov and bank,
+     * chromatic aberration, grain, bloom, fog, the HUD, the overlay tilt,
+     * steering — so feeding them the raw value made every one of them chatter
+     * in sync, which is the shake. Smoothing it once here fixes all fifteen,
+     * and is the only place that can, because the spikiness is in the source.
+     */
+    let velRaw = 0
+    let velSmooth = 0
+
     const read = (e: any) => {
       const scroll = e.scroll
-      const vel = e.velocity
+      velRaw = e.velocity
       const max = document.documentElement.scrollHeight - window.innerHeight
       const progress = max > 0 ? Math.min(1, Math.max(0, scroll / max)) : 0
       const chapter = Math.round(chapterFloat(progress))
@@ -57,10 +69,10 @@ function useScrollDriver() {
           ...(viewLocked ? null : { view: chapter === 1 ? ('wire' as const) : ('render' as const) }),
         })
       }
-      set({ progress, entered: progress > 0.01 || prev.entered, scrollVelocity: vel })
+      set({ progress, entered: progress > 0.01 || prev.entered })
       audio.setScroll(progress)
       if (prev.rain) {
-        audio.updateRain(prev.launching ? 500 : vel)
+        audio.updateRain(prev.launching ? 500 : velSmooth)
       }
     }
 
@@ -69,6 +81,13 @@ function useScrollDriver() {
     let rafId = 0
     function raf(time: number) {
       lenis.raf(time)
+      // Decay the raw reading as well as chasing it, so the smoothed value
+      // settles to a true zero when the scroll stops rather than freezing on
+      // whatever the last event happened to carry.
+      velRaw *= 0.86
+      velSmooth += (velRaw - velSmooth) * 0.14
+      if (Math.abs(velSmooth) < 0.05) velSmooth = 0
+      set({ scrollVelocity: velSmooth })
       rafId = requestAnimationFrame(raf)
     }
     rafId = requestAnimationFrame(raf)

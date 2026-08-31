@@ -147,7 +147,7 @@ export function Rig() {
 
     // Elegant cinematic camera target breathing & physical dive
     const time = state.clock.elapsedTime
-    nextTarget.y += Math.sin(time * 0.5) * 0.05 + (s.scrollVelocity || 0) * 0.002
+    nextTarget.y += Math.sin(time * 0.5) * 0.05 + THREE.MathUtils.clamp((s.scrollVelocity || 0) * 0.002, -0.06, 0.06)
     pointer.current.lerp(state.pointer, 1 - Math.pow(0.001, dt))
     const swing = s.entered ? 1 : 0.35
     nextPos.x += Math.sin(time * 0.19) * 0.22 * swing + pointer.current.x * 0.85

@@ -15,8 +15,16 @@ export const CAR = {
   wheelRadius: 0.40, // Scaled up wheels
   wheelWidthFront: 0.28,
   wheelWidthRear: 0.35,
-  trackFront: 0.82,
-  trackRear: 0.85,
+  /**
+   * Track is set so the outer face of each tyre lands level with the body's
+   * widest point at that axle, not tucked behind it. The front was 46mm inside
+   * the fender line against the rear's 14mm, so the rear wheels read and the
+   * front ones disappeared into the bodywork — from three-quarters the car
+   * looked like it had three wheels. Body half-width is 1.006 at the front
+   * axle and 1.039 at the rear; half a tyre is 0.14 and 0.175.
+   */
+  trackFront: 0.87,
+  trackRear: 0.87,
   archRadius: 0.50, // Scaled up wheel arches
 }
 

@@ -70,7 +70,10 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
     const targetFold = s.launching ? (-Math.PI / 2) * side : targetCamber
     offsetRef.current.rotation.x = THREE.MathUtils.damp(offsetRef.current.rotation.x, targetFold, 5, dt)
 
-    const steerMult = 0.5 + Math.abs(s.scrollVelocity || 0) * 0.05
+    // Lock in real steering range. This was 0.5 + |velocity| * 0.05, i.e. 3.5
+    // radians at a scroll spike — the front wheels spun two hundred degrees and
+    // hacked through their own arches.
+    const steerMult = 0.26 + Math.min(0.12, Math.abs(s.scrollVelocity || 0) * 0.003)
     const targetSteer = front ? state.pointer.x * -steerMult : 0
     offsetRef.current.rotation.y = THREE.MathUtils.damp(offsetRef.current.rotation.y, targetSteer, 8, dt)
 
@@ -105,7 +108,7 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
           {study ? (
             <StudyMaterial view={view} tint="#6b7078" />
           ) : (
-            <meshStandardMaterial {...clip} ref={tireMatRef} color="#0a0a0c" roughness={0.82} metalness={0.05} emissive="#ff4400" emissiveIntensity={0} />
+            <meshStandardMaterial {...clip} ref={tireMatRef} color="#141519" roughness={0.72} metalness={0.05} emissive="#ff4400" emissiveIntensity={0} />
           )}
         </mesh>
         <mesh geometry={rimGeo} castShadow>
