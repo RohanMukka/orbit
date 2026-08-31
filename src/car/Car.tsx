@@ -176,7 +176,7 @@ export function Car(props: ComponentProps<'group'>) {
    * claim intact and is how production real-time car renders do it anyway.
    */
   const paintMat = useMemo(() => {
-    const m = new THREE.MeshPhysicalMaterial({ sheenRoughness: 0.5, envMapIntensity: 1.35, transparent: true })
+    const m = new THREE.MeshPhysicalMaterial({ sheenRoughness: 0.5, envMapIntensity: 1.35 })
     // vUv only exists if something asks for it; nothing here samples a texture.
     m.defines = { ...(m.defines ?? {}), USE_UV: '' }
     m.onBeforeCompile = (shader) => {
@@ -238,6 +238,7 @@ export function Car(props: ComponentProps<'group'>) {
       transparent: true,
       opacity: 1.0,
     })
+    m.userData.alwaysTransparent = true
     return m
   }, [])
 
@@ -248,8 +249,6 @@ export function Car(props: ComponentProps<'group'>) {
       roughness: 0.6,
       clearcoat: 0.3,
       envMapIntensity: 0.5,
-      transparent: true,
-      opacity: 1.0,
     })
   }, [])
 
@@ -321,13 +320,22 @@ export function Car(props: ComponentProps<'group'>) {
       }
 
       if (shellRef.current) {
+        // needsUpdate on a material forces a full program recompile. Setting it
+        // once per frame per material, for the 3.2s of the reveal, stalled the
+        // whole intro — and opacity is a uniform, so it never needed one. The
+        // transparent flag does change the render path, so it is flipped only
+        // on the two frames where it actually changes.
+        const wantTransparent = shellOpacity < 1
         shellRef.current.traverse((o) => {
           if ((o as THREE.Mesh).isMesh) {
             const mats = Array.isArray((o as THREE.Mesh).material) ? (o as THREE.Mesh).material as THREE.Material[] : [(o as THREE.Mesh).material as THREE.Material]
             mats.forEach(m => {
-              m.transparent = true
+              const want = m.userData.alwaysTransparent ? true : wantTransparent
+              if (m.transparent !== want) {
+                m.transparent = want
+                m.needsUpdate = true
+              }
               m.opacity = shellOpacity
-              m.needsUpdate = true
             })
           }
         })

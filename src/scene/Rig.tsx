@@ -87,8 +87,10 @@ export function Rig() {
 
     const aspect = state.size.width / Math.max(1, state.size.height)
     const portrait = aspect < 1.05
-    let fov = THREE.MathUtils.lerp(a.fov, b.fov, t) + (s.photoMode ? 0 : Math.sin(state.clock.elapsedTime * 1.5) * 0.5)
-    fov += Math.abs(s.scrollVelocity || 0) * 0.05
+    let fov = THREE.MathUtils.lerp(a.fov, b.fov, t)
+    // Velocity is px/frame and peaks near 60, so an unclamped term here swung
+    // the lens by tens of degrees mid-scroll.
+    fov += Math.min(2.5, Math.abs(s.scrollVelocity || 0) * 0.02)
 
     // Slide the whole frame sideways so the car clears the chapter's copy.
     // On mobile the copy sits above the car instead, so the frame drops
@@ -148,16 +150,16 @@ export function Rig() {
     nextTarget.y += Math.sin(time * 0.5) * 0.05 + (s.scrollVelocity || 0) * 0.002
     pointer.current.lerp(state.pointer, 1 - Math.pow(0.001, dt))
     const swing = s.entered ? 1 : 0.35
-    nextPos.x += Math.sin(time * 0.19) * 0.22 * swing + pointer.current.x * 2.5
-    nextPos.y += Math.cos(time * 0.16) * 0.08 * swing - pointer.current.y * 0.35
-    nextPos.z += Math.cos(time * 0.13) * 0.22 * swing + (s.scrollVelocity || 0) * 0.03
+    nextPos.x += Math.sin(time * 0.19) * 0.22 * swing + pointer.current.x * 0.85
+    nextPos.y += Math.cos(time * 0.16) * 0.08 * swing - pointer.current.y * 0.22
+    nextPos.z += Math.cos(time * 0.13) * 0.22 * swing + THREE.MathUtils.clamp((s.scrollVelocity || 0) * 0.01, -0.5, 0.5)
     
     // Physical camera target lag & apex tracking
-    nextTarget.x += (s.scrollVelocity || 0) * 0.0005 + pointer.current.x * -1.5
-    nextTarget.z += (s.scrollVelocity || 0) * -0.005
+    nextTarget.x += (s.scrollVelocity || 0) * 0.0005 + pointer.current.x * -0.35
+    nextTarget.z += THREE.MathUtils.clamp((s.scrollVelocity || 0) * -0.002, -0.25, 0.25)
 
     // Directional G-Force: Accelerate (positive) expands FOV, Brake (negative) compresses FOV
-    fov += (s.scrollVelocity || 0) * 0.1
+    fov += THREE.MathUtils.clamp((s.scrollVelocity || 0) * 0.03, -4, 4)
     fov = Math.max(10, Math.min(150, fov))
 
     if (s.launching) {
@@ -192,12 +194,12 @@ export function Rig() {
     target.current.lerp(nextTarget, 1 - Math.pow(0.002, dt))
 
     const steerBank = state.pointer.x * -0.1
-    const targetBank = ((s.scrollVelocity || 0) * -0.002) + steerBank
+    const targetBank = THREE.MathUtils.clamp((s.scrollVelocity || 0) * -0.0006, -0.05, 0.05) + steerBank
     bank.current = THREE.MathUtils.damp(bank.current, targetBank, 3, dt)
     camera.up.set(Math.sin(bank.current), Math.cos(bank.current), 0).normalize()
 
     camera.lookAt(target.current)
-    camera.rotateX((s.scrollVelocity || 0) * -0.001)
+    camera.rotateX(THREE.MathUtils.clamp((s.scrollVelocity || 0) * -0.0004, -0.03, 0.03))
 
     if (Math.abs(camera.fov - fov) > 0.01) {
       camera.fov = THREE.MathUtils.damp(camera.fov, fov, 2.5, dt)

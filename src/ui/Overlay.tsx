@@ -1,12 +1,12 @@
 import { useEffect, useState, useRef } from 'react'
 import { CHAPTERS } from './chapters'
-import { PAINTS, RIMS, VIEWS, set, useStore, peek } from '../state'
+import { PAINTS, RIMS, VIEWS, set, useStore, peek, subscribe } from '../state'
 import { DesignPanel } from './Design'
 import * as audio from '../audio'
 import { BODY_RES } from '../car/body'
 
 function getHexProgress(prog: number, vel: number) {
-  if (Math.abs(vel) > 15) {
+  if (Math.abs(vel) > 55) {
     return Math.floor(Math.random() * 0xfff).toString(16).padStart(3, '0').toUpperCase() + '%'
   }
   return (prog * 100).toFixed(0).padStart(3, '0') + '%'
@@ -17,8 +17,11 @@ function Telemetry() {
   const paint = useStore((s) => s.paint)
   const chapter = useStore((s) => s.chapter)
   const scrollVelocity = useStore((s) => s.scrollVelocity)
-  const blurAmount = Math.abs(scrollVelocity || 0) * 2.0
-  const opacity = Math.max(0.2, 1.0 - Math.abs(scrollVelocity || 0) * 0.1)
+  // Velocity is in px/frame and regularly passes 40, so both of these have to
+  // be clamped — unbounded they took the HUD to blur(80px) at 20% opacity.
+  const vel = Math.abs(scrollVelocity || 0)
+  const blurAmount = Math.min(1.4, vel * 0.03)
+  const opacity = Math.max(0.72, 1.0 - vel * 0.01)
   return (
     <div className={`hud hud--bl ${progress > 0.9 ? 'hud--away' : ''}`} style={{ filter: `blur(${blurAmount}px)`, opacity }}>
       <div className="hud__row">
@@ -254,7 +257,6 @@ export function Overlay() {
   const launching = useStore((s) => s.launching)
   const photoMode = useStore((s) => s.photoMode)
   const flash = useStore((s) => s.flash)
-  const scrollVelocity = useStore((s) => s.scrollVelocity)
 
   useEffect(() => {
     if (launching) document.body.classList.add('is-launching')
@@ -272,12 +274,41 @@ export function Overlay() {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
-  const vel = Math.abs(scrollVelocity || 0)
-  const rattleX = vel > 30 ? Math.sin(Date.now() * 0.5) * (vel * 0.05) : 0
-  const rattleY = vel > 30 ? Math.cos(Date.now() * 0.6) * (vel * 0.05) : 0
-  const rotX = launching ? 2 : (scrollVelocity || 0) * -0.02;
-  const zPush = launching ? -50 : (scrollVelocity || 0) * 0.1;
-  const transformStr = `translate3d(${rattleX}px, ${rattleY}px, ${zPush}px) scale(${launching ? 1.03 : 1}) perspective(1000px) rotateX(${rotX}deg) translateY(${launching ? -1 : 0}%)`;
+  /**
+   * The kinetic tilt is written straight to the node's style rather than kept
+   * in React state. Subscribing this component to scrollVelocity re-rendered
+   * the entire overlay — every chapter, every SplitText span, the configurator
+   * — on every frame of every scroll, to move one element. The transform is a
+   * compositor-only property, so setting it here skips reconciliation entirely.
+   */
+  const scrollRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    let raf = 0
+    const apply = () => {
+      raf = 0
+      const el = scrollRef.current
+      if (!el) return
+      const s = peek()
+      const v = s.scrollVelocity || 0
+      const vel = Math.abs(v)
+      const rattleX = vel > 30 ? Math.sin(Date.now() * 0.5) * (vel * 0.05) : 0
+      const rattleY = vel > 30 ? Math.cos(Date.now() * 0.6) * (vel * 0.05) : 0
+      const rotX = s.launching ? 2 : v * -0.02
+      const zPush = s.launching ? -50 : v * 0.1
+      el.style.transform =
+        `translate3d(${rattleX}px, ${rattleY}px, ${zPush}px) scale(${s.launching ? 1.03 : 1})` +
+        ` perspective(1000px) rotateX(${rotX}deg) translateY(${s.launching ? -1 : 0}%)`
+    }
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(apply)
+    }
+    apply()
+    const unsub = subscribe(schedule)
+    return () => {
+      if (raf) cancelAnimationFrame(raf)
+      unsub()
+    }
+  }, [photoMode])
 
   return (
     <>
@@ -285,11 +316,17 @@ export function Overlay() {
         position: 'fixed', inset: 0, backgroundColor: 'white', zIndex: 10000, pointerEvents: 'none',
         opacity: flash ? 1 : 0, transition: flash ? 'none' : 'opacity 0.8s ease-out'
       }} />
-      <div className="ui-container" style={{ 
-        opacity: mounted ? (photoMode ? 0 : 1) : 0, 
-        transition: 'opacity 2s ease-out, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), backdrop-filter 2s ease-out', 
-        transform: transformStr,
-        backdropFilter: 'blur(3px)'
+      {/*
+        No transform and no backdrop-filter on this element, ever. It wraps the
+        whole overlay including .scroll, so it is as tall as the document — and
+        either property would make it the containing block for every
+        position:fixed child, which parks the HUD and the configurator a full
+        page below the viewport and blurs the canvas behind all 5400px of it.
+        The kinetic transform lives on .scroll instead, which holds nothing fixed.
+      */}
+      <div className="ui-container" style={{
+        opacity: mounted ? (photoMode ? 0 : 1) : 0,
+        transition: 'opacity 1.2s ease-out',
       }}>
         <Cursor />
         <Boot />
@@ -312,7 +349,7 @@ export function Overlay() {
             <Telemetry />
             <Configurator />
 
-            <div className="scroll">
+            <div className="scroll" ref={scrollRef}>
               {CHAPTERS.map((c, i) => (
                 <section
                   key={c.index}
@@ -419,13 +456,6 @@ export function Overlay() {
         <CinematicLetterbox />
         <Speedometer />
       </div>
-      <div style={{
-        position: 'fixed',
-        inset: 0,
-        pointerEvents: 'none',
-        zIndex: 9999,
-        background: 'repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px)'
-      }} />
     </>
   )
 }

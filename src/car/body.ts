@@ -248,10 +248,10 @@ function section(u: number, theta: number, P: ProfileSet = BASE_PROFILES): BodyP
   // --- side intake ---------------------------------------------------------
   // A scallop in the flank ahead of the rear wheel. Pressing the surface in
   // and painting it carbon reads as an intake without any extra geometry.
-  const intake = smoothstep(0.2, 0.3, u) * (1 - smoothstep(0.46, 0.56, u))
+  const intake = smoothstep(0.19, 0.26, u) * (1 - smoothstep(0.34, 0.43, u))
   if (intake > 0) {
     const band = 1 - Math.min(1, Math.abs(y - (yc - rb * 0.16)) / (rb * 0.66))
-    if (band > 0) z *= 1 - 0.45 * intake * smoothstep(0, 1, band)
+    if (band > 0) z *= 1 - 0.3 * intake * smoothstep(0, 1, band)
   }
 
   // --- character lines -----------------------------------------------------
@@ -311,20 +311,35 @@ export function canopySpan(u: number): number {
 /** Angular half-height of the side intake, and the angle it is centred on. */
 export const INTAKE_CENTRE = -0.14
 export function intakeAperture(u: number): number {
-  const t = (u - 0.38) / 0.165
-  return Math.abs(t) < 1 ? 0.15 * Math.pow(1 - t * t, 0.55) : 0
+  const t = (u - 0.305) / 0.115
+  return Math.abs(t) < 1 ? 0.17 * Math.pow(1 - t * t, 0.55) : 0
 }
 
 function surfaceAtParam(u: number, theta: number): Surface {
-  const normTh = theta / TAU
-  // Canopy (windshield and side windows)
-  if (u > 0.36 && u < 0.8 && normTh > 0.18 && normTh < 0.32) return 'glass'
-  // Diffuser, underbody, and entire rear fascia (Kamm tail)
-  if (u < 0.04) return 'carbon'
-  if (u < 0.15 && (normTh > 0.85 || normTh < 0.15)) return 'carbon'
-  if (normTh > 0.9 || normTh < 0.1) return 'carbon'
-  // Front splitter
-  if (u > 0.95 && (normTh > 0.85 || normTh < 0.15)) return 'carbon'
+  /**
+   * Every rule here is written against an angle measured from the top or the
+   * bottom of the section, never against raw theta.
+   *
+   * theta is zero at the +z shoulder, so a threshold like "theta near 0" picks
+   * out one flank and silently leaves its mirror alone. Three rules were
+   * written that way, and between them they painted a 36-degree carbon stripe
+   * down the right-hand side of the car from nose to tail while the left side
+   * stayed in body colour. The two sides of the car were different cars.
+   */
+  const fromTop = Math.abs(wrap(theta - Math.PI / 2))
+  const fromBottom = Math.abs(wrap(theta + Math.PI / 2))
+
+  // Canopy. Driven by the same span the window seal is traced along, so the
+  // seal follows the edge of the glass instead of sitting out on the bodywork
+  // forty degrees away from it.
+  const canopy = canopySpan(u)
+  if (canopy > 0 && fromTop < canopy) return 'glass'
+
+  // Kamm tail. Carbon everywhere except a cap over the crown, so the engine
+  // deck runs over the back of the car in body colour and the fascia below it
+  // has a defined top edge instead of dissolving into the deck.
+  if (u < 0.05 && fromTop > 0.95) return 'carbon'
+
   // Side intakes: a lens-shaped opening in the scalloped flank. A constant
   // width here would read as a rectangular sticker, so the aperture tapers to
   // a point at both ends of the scallop.
@@ -337,9 +352,10 @@ function surfaceAtParam(u: number, theta: number): Surface {
     if (flank < aperture) return 'carbon'
   }
 
-  // Underbody, sills and diffuser: a band centred on the bottom.
-  const floorSpan = 1.0 + 0.25 * smoothstep(0.72, 1, u) + 0.2 * smoothstep(0.16, 0, u)
-  if (Math.abs(wrap(theta + Math.PI / 2)) < floorSpan) return 'carbon'
+  // Underbody, sills and diffuser: a band centred on the bottom, opening out
+  // under the splitter at the nose and the diffuser at the tail.
+  const floorSpan = 1.0 + 0.25 * smoothstep(0.72, 1, u) + 0.35 * smoothstep(0.16, 0, u)
+  if (fromBottom < floorSpan) return 'carbon'
 
   return 'paint'
 }
@@ -482,9 +498,24 @@ export function buildBodyGeometry(
       bucket.push(a, b, d, b, c, d)
     }
   }
+  /**
+   * Cap triangles are classified the same way the shell is, rather than being
+   * dumped whole into one bucket. The tail cap is the largest single flat area
+   * on the car — 1.8m across — so whichever material it is given it becomes the
+   * back of the car: as paint it was an unbroken body-coloured disc, as carbon
+   * an unbroken black one. Running it through surfaceAtParam gives it the same
+   * painted crown and dark fascia the shell around it has, and the two line up
+   * because they are answering the same function.
+   */
   for (let j = 0; j < ring; j++) {
-    buckets.paint.push(tailC, gridR[0][j], gridL[0][j + 1])
-    buckets.paint.push(noseC, gridL[stations - 1][j + 1], gridR[stations - 1][j])
+    const tailTheta = (angles[0][j] + angles[0][j + 1]) * 0.5
+    buckets[surfaceAtParam(0, tailTheta)].push(tailC, gridR[0][j], gridL[0][j + 1])
+    const noseTheta = (angles[stations - 1][j] + angles[stations - 1][j + 1]) * 0.5
+    buckets[surfaceAtParam(1, noseTheta)].push(
+      noseC,
+      gridL[stations - 1][j + 1],
+      gridR[stations - 1][j]
+    )
   }
 
   const order: Surface[] = ['paint', 'glass', 'carbon']

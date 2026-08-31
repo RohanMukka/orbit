@@ -81,8 +81,8 @@ button, a, .design__handle, .swatch, .chip { cursor: none; }
   z-index: 3;
   pointer-events: none;
   background:
-    radial-gradient(120% 90% at 50% 42%, transparent 42%, rgba(0, 0, 0, 0.55) 100%),
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 3px);
+    radial-gradient(125% 95% at 50% 44%, transparent 52%, rgba(0, 0, 0, 0.3) 100%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.01) 0 1px, transparent 1px 3px);
 }
 
 /* ── micro type ──────────────────────────────────────────────────────────── */

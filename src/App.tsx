@@ -93,7 +93,7 @@ export function App() {
       <div className="stage">
         <Canvas
           shadows
-          dpr={[1, 1.85]}
+          dpr={[1, 2]}
           gl={{ antialias: false, powerPreference: 'high-performance' }}
           camera={{ position: SHOTS[0].pos, fov: SHOTS[0].fov, near: 0.1, far: 120 }}
           onCreated={({ gl, scene }) => {
@@ -101,7 +101,7 @@ export function App() {
             gl.localClippingEnabled = true
             gl.toneMapping = THREE.ACESFilmicToneMapping
             gl.toneMappingExposure = 1.0
-            scene.fog = new THREE.FogExp2('#05060a', 0.031)
+            scene.fog = new THREE.FogExp2('#05060a', 0.016)
           }}
         >
           <Suspense fallback={null}>

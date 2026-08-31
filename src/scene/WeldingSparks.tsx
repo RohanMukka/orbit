@@ -18,8 +18,14 @@ export function WeldingSparks() {
 
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
+  const alive = useRef(0)
+
   useFrame((_, delta) => {
     if (!mesh.current) return
+    // Sparks only spawn while a curve handle is being dragged. Without this the
+    // whole pool was stepped and re-uploaded every frame to animate nothing.
+    if (!dragging && alive.current === 0) return
+    let live = 0
 
     for (let i = 0; i < COUNT; i++) {
       const p = particles[i]
@@ -41,6 +47,7 @@ export function WeldingSparks() {
       }
 
       if (p.life > 0) {
+        live++
         p.life -= delta * 1.5
         p.vel.y -= delta * 5.0 // gravity
 
@@ -57,6 +64,7 @@ export function WeldingSparks() {
         mesh.current.setMatrixAt(i, dummy.matrix)
       }
     }
+    alive.current = live
     mesh.current.instanceMatrix.needsUpdate = true
   })
 

@@ -3,7 +3,7 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { peek } from '../state'
 
-export function CyberDust({ count = 500 }) {
+export function CyberDust({ count = 260 }) {
   const mesh = useRef<THREE.InstancedMesh>(null)
   const matRef = useRef<THREE.MeshBasicMaterial>(null)
   

@@ -36,7 +36,10 @@ export function TireSmoke() {
     const mesh = meshRef.current
     if (!mesh) return
     
-    if (spin && !launching) {
+    // Rolling wheels alone are not a burnout — only smoke when the car is
+    // actually being driven, or the studio shot sits in a permanent haze.
+    const moving = Math.abs(peek().scrollVelocity || 0) > 12
+    if (spin && moving && !launching) {
       for (let i = 0; i < 2; i++) {
         const p = particles[spawnIndex.current]
         p.active = true

@@ -5,7 +5,7 @@ import { useStore } from '../state'
 
 export function FloorDust() {
   const launching = useStore((s) => s.launching)
-  const count = 300
+  const count = 180
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const matRef = useRef<THREE.MeshBasicMaterial>(null)
 
@@ -85,8 +85,8 @@ export function FloorDust() {
 
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
-      <boxGeometry args={[0.015, 0.015, 0.015]} />
-      <meshBasicMaterial ref={matRef} color="#ffffff" />
+      <boxGeometry args={[0.011, 0.011, 0.011]} />
+      <meshBasicMaterial ref={matRef} color="#ffffff" transparent opacity={0.16} depthWrite={false} />
     </instancedMesh>
   )
 }

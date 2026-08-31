@@ -145,7 +145,7 @@ function Floor() {
           resolution={512}
           mixBlur={1.1}
           mixStrength={22}
-          blur={[280, 90]}
+          blur={[170, 60]}
           mirror={night ? 0.75 : 0.55}
           depthScale={1.1}
           minDepthThreshold={0.35}
@@ -186,11 +186,14 @@ function Streaks() {
   const targetColor = useMemo(() => new THREE.Color(), [])
   const streakBaseColor = useMemo(() => new THREE.Color('#9db4ff'), [])
 
+  const shape = useStore((st) => st.shape)
+  const profiles = useMemo(() => shapedProfiles(shape), [shape])
+
   useFrame((state, dt) => {
     if (!ref.current) return
     const s = peek()
     const launching = s.launching
-    const P = shapedProfiles(s.shape)
+    const P = profiles
     const halfLen = CAR.length / 2
 
     seeds.forEach((seed, i) => {
@@ -298,7 +301,7 @@ export function Studio() {
       {/* Soft, broad global illumination cast shadow */}
       <ContactShadows position={[0, 0.002, 0]} opacity={0.65} scale={16} blur={4.5} far={4} resolution={1024} frames={100} color="#000000" />
       {/* Tight, dark ambient occlusion core shadow right under the tires/belly */}
-      <ContactShadows position={[0, 0.004, 0]} opacity={0.95} scale={8} blur={1.2} far={1} resolution={1024} frames={100} color="#000205" />
+      <ContactShadows position={[0, 0.004, 0]} opacity={0.95} scale={8} blur={1.2} far={1} resolution={512} frames={100} color="#000205" />
       <KeyLight />
       <CursorLight />
       <ambientLight intensity={0.1} />

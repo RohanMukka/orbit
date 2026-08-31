@@ -7,15 +7,18 @@ const tube = (pts: THREE.Vector3[], radius: number, radial = 8) =>
 
 export function buildTailLight() {
   const parts: THREE.BufferGeometry[] = []
+  const U = 0.03 // one station in from the tail cap
   for (const s of [1, -1]) {
-    // Outer light
-    const outer = new THREE.BoxGeometry(0.04, 0.12, 0.22)
-    outer.translate(-2.23, 0.85, s * 0.7)
-    parts.push(outer)
-    // Inner light
-    const inner = new THREE.BoxGeometry(0.04, 0.12, 0.22)
-    inner.translate(-2.25, 0.85, s * 0.4)
-    parts.push(inner)
+    // Two blades a side, stepped up the fascia. Positions come from the shell
+    // rather than from constants: hand-picked coordinates put the old lamps
+    // inside the body, and a lamp you cannot see is the one detail the eye
+    // looks for first at the back of a car.
+    for (const th of [0.34, 0.72]) {
+      const p = bodyPoint(U, s > 0 ? th : Math.PI - th)
+      const bar = new THREE.BoxGeometry(0.06, 0.07, 0.34)
+      bar.translate(p.x - 0.03, p.y, p.z * 0.82)
+      parts.push(bar)
+    }
   }
   return merge(parts)
 }
@@ -61,27 +64,68 @@ export function buildHeadLightHousings() {
   return merge([cup(1), cup(-1)])
 }
 
+/**
+ * Rear wing.
+ *
+ * It used to be a 2.1m box floating 30cm clear of the engine deck on two thin
+ * struts set well inboard of its tips, which is why it read as a rectangle
+ * pasted behind the car rather than a part bolted to it. Three things fix that,
+ * and none of them is detail: an aerofoil section instead of a slab, so the
+ * element catches light along a leading edge and shades away to a trailing one;
+ * a span that stops inside the rear track instead of overhanging it; and struts
+ * moved out under the loaded part of the wing, tall enough to actually reach
+ * the deck they are supposed to be carrying it off.
+ */
+const WING = {
+  x: -2.22,
+  y: 1.14,
+  span: 1.86,
+  chord: 0.42,
+  attack: 0.1,
+}
+
+/** Half an aerofoil sweep: flat-ish upper surface, cambered underside. */
+function wingSection() {
+  const s = new THREE.Shape()
+  const c = WING.chord * 0.5
+  s.moveTo(c, 0) // leading edge
+  s.quadraticCurveTo(c * 0.1, 0.05, -c, 0.014) // upper surface
+  s.lineTo(-c, -0.006) // trailing edge
+  s.quadraticCurveTo(c * 0.1, -0.028, c, 0) // underside — the working face
+  s.closePath()
+  return s
+}
+
 export function buildDucktail() {
   const parts: THREE.BufferGeometry[] = []
 
-  // Main horizontal wing
-  const wing = new THREE.BoxGeometry(0.35, 0.04, 2.1)
-  wing.rotateZ(0.08) // Slight tilt
-  wing.translate(-2.3, 1.25, 0)
+  const wing = new THREE.ExtrudeGeometry(wingSection(), {
+    depth: WING.span,
+    bevelEnabled: false,
+    curveSegments: 12,
+  })
+  wing.translate(0, 0, -WING.span / 2)
+  wing.rotateZ(WING.attack)
+  wing.translate(WING.x, WING.y, 0)
   parts.push(wing)
 
   for (const s of [1, -1]) {
-    // Vertical side endplates
-    const endplate = new THREE.BoxGeometry(0.45, 0.25, 0.03)
-    endplate.rotateZ(0.08)
-    endplate.translate(-2.3, 1.25, s * 1.05)
+    // Endplates, vertical and sized to the chord they close off.
+    const endplate = new THREE.BoxGeometry(WING.chord * 1.24, 0.22, 0.022)
+    endplate.rotateZ(WING.attack)
+    endplate.translate(WING.x - 0.02, WING.y + 0.04, s * WING.span * 0.5)
     parts.push(endplate)
 
-    // Connecting struts to the body
-    const strut = new THREE.BoxGeometry(0.18, 0.45, 0.05)
-    strut.rotateZ(-0.25) // Sweep backwards
-    // Position it bridging from body to the wing
-    strut.translate(-2.15, 1.05, s * 0.4)
+    /**
+     * Swan-neck struts, out at 78% of the semi-span where the load is. Each one
+     * runs from y = 0.86 — inside the engine deck, so the joint is buried
+     * rather than hovering over it — up to the wing underside.
+     */
+    const foot = 0.86
+    const height = WING.y - foot
+    const strut = new THREE.BoxGeometry(0.1, height + 0.12, 0.038)
+    strut.rotateZ(-0.16) // raked back
+    strut.translate(WING.x + 0.03, foot + height * 0.5, s * WING.span * 0.39)
     parts.push(strut)
   }
 
@@ -224,7 +268,7 @@ export function buildCanopyTrim() {
 
 export function buildIntakeTrim() {
   const sides = [INTAKE_CENTRE, Math.PI - INTAKE_CENTRE].map((c) =>
-    trimLoop(0.217, 0.543, () => c, intakeAperture, 0.009, 70)
+    trimLoop(0.198, 0.412, () => c, intakeAperture, 0.009, 70)
   )
   return merge(sides)
 }

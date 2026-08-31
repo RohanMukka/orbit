@@ -121,7 +121,7 @@ export function set(patch: Partial<Store>) {
   listeners.forEach((l) => l())
 }
 
-const subscribe = (l: () => void) => {
+export const subscribe = (l: () => void) => {
   listeners.add(l)
   return () => listeners.delete(l)
 }
