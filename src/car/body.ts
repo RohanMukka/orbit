@@ -492,7 +492,9 @@ export function buildBodyGeometry(
   const geo = new THREE.BufferGeometry()
   order.forEach((key, materialIndex) => {
     const start = indices.length
-    indices.push(...buckets[key])
+    for (let i = 0; i < buckets[key].length; i++) {
+      indices.push(buckets[key][i])
+    }
     geo.addGroup(start, indices.length - start, materialIndex)
   })
 

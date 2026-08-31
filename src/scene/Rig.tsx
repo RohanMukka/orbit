@@ -158,6 +158,7 @@ export function Rig() {
 
     // Directional G-Force: Accelerate (positive) expands FOV, Brake (negative) compresses FOV
     fov += (s.scrollVelocity || 0) * 0.1
+    fov = Math.max(10, Math.min(150, fov))
 
     if (s.launching) {
       const surge = Math.sin(time * 15.0) * 2.0
