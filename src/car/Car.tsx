@@ -65,8 +65,9 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
     offsetRef.current.position.z = side * ex * 0.8
     offsetRef.current.position.x = Math.sign(x) * ex * 0.6
 
-    // Hovercraft flight mode fold
-    const targetFold = s.launching ? (-Math.PI / 2) * side : 0
+    // Hovercraft flight mode fold + Dynamic Camber
+    const targetCamber = (front ? state.pointer.x * -0.1 : state.pointer.x * 0.05) * side
+    const targetFold = s.launching ? (-Math.PI / 2) * side : targetCamber
     offsetRef.current.rotation.x = THREE.MathUtils.damp(offsetRef.current.rotation.x, targetFold, 5, dt)
 
     const steerMult = 0.5 + Math.abs(s.scrollVelocity || 0) * 0.05
