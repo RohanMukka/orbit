@@ -47,6 +47,11 @@ export function CyberDust({ count = 500 }) {
 
       if (launching) {
         particle.z -= delta * 150.0
+        const distFromCenter = Math.abs(particle.x)
+        if (distFromCenter < 2.0 && particle.y < 1.0) {
+           particle.x += Math.sign(particle.x) * delta * 15.0
+           particle.y += delta * 10.0
+        }
       }
 
       if (particle.x > 5) particle.x = -5

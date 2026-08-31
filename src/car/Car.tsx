@@ -449,13 +449,21 @@ export function Car(props: ComponentProps<'group'>) {
       if (revealed.current < 3.0) {
         headlightsGroupRef.current.visible = Math.sin(Date.now() * 0.02) > 0;
       } else {
+        const scrollVel = Math.abs(peek().scrollVelocity || 0)
+        const strainFlicker = scrollVel > 20 ? Math.sin(state.clock.elapsedTime * 150) * Math.min(2.0, scrollVel * 0.02) : 0
         if (peek().launching) {
           const pulse = Math.sin(Date.now() * 0.05)
           headlightsGroupRef.current.visible = true;
-          if (headMatRef.current) headMatRef.current.emissiveIntensity = (st.night ? 6.0 : 0.5) + pulse * 2.0;
+          if (headMatRef.current) {
+             const target = (st.night ? 6.0 : 0.5) + pulse * 2.0 + strainFlicker
+             headMatRef.current.emissiveIntensity = THREE.MathUtils.damp(headMatRef.current.emissiveIntensity, target, 5, dt)
+          }
         } else {
           headlightsGroupRef.current.visible = true;
-          if (headMatRef.current) headMatRef.current.emissiveIntensity = st.night ? 6.0 : 0.5;
+          if (headMatRef.current) {
+             const target = (st.night ? 6.0 : 0.5) + strainFlicker
+             headMatRef.current.emissiveIntensity = THREE.MathUtils.damp(headMatRef.current.emissiveIntensity, target, 5, dt)
+          }
         }
       }
     }
@@ -475,13 +483,16 @@ export function Car(props: ComponentProps<'group'>) {
     const scrollVel = Math.abs(peek().scrollVelocity || 0)
     paintMat.envMapIntensity = 1.35 + Math.sin(state.clock.elapsedTime * 2.0) * 0.4 + scrollVel * 0.02
     paintMat.metalness = THREE.MathUtils.damp(paintMat.metalness, f.metalness + scrollVel * 0.005, 5, dt)
+    const flakeSparkle = Math.sin(state.clock.elapsedTime * 1000.0) * 0.03
+    paintMat.roughness = f.roughness + flakeSparkle
     paintMat.clearcoat = THREE.MathUtils.damp(paintMat.clearcoat, launching ? 0.0 : f.clearcoat, 3, dt)
     glassMat.envMapIntensity = 2.0 + Math.sin(state.clock.elapsedTime * 2.0) * 0.2 + scrollVel * 0.05
     glassMat.transmission = THREE.MathUtils.damp(glassMat.transmission, 0.8 - scrollVel * 0.001, 5, dt)
     if (launching && groupRef.current) {
       const rumble = Math.sin(state.clock.elapsedTime * 60) * 0.015
       const velShake = Math.abs(peek().scrollVelocity || 0) * 0.0001
-      groupRef.current.position.y = rumble + velShake
+      const downforce = 0.02
+      groupRef.current.position.y = rumble + velShake - downforce
       groupRef.current.position.z = Math.cos(state.clock.elapsedTime * 73) * 0.01
     } else if (groupRef.current) {
       const floatY = Math.sin(state.clock.elapsedTime * 1.5) * 0.008

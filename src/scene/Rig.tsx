@@ -143,17 +143,17 @@ export function Rig() {
       nextTarget.y += 0.78
     }
 
-    // Elegant cinematic camera target breathing
+    // Elegant cinematic camera target breathing & physical dive
     const time = state.clock.elapsedTime
-    nextTarget.y += Math.sin(time * 0.5) * 0.05
+    nextTarget.y += Math.sin(time * 0.5) * 0.05 + (s.scrollVelocity || 0) * 0.002
     pointer.current.lerp(state.pointer, 1 - Math.pow(0.001, dt))
     const swing = s.entered ? 1 : 0.35
-    nextPos.x += Math.sin(time * 0.19) * 0.22 * swing + pointer.current.x * 0.75
+    nextPos.x += Math.sin(time * 0.19) * 0.22 * swing + pointer.current.x * 2.5
     nextPos.y += Math.cos(time * 0.16) * 0.08 * swing - pointer.current.y * 0.35
     nextPos.z += Math.cos(time * 0.13) * 0.22 * swing + (s.scrollVelocity || 0) * 0.003
     
-    // Physical camera target lag
-    nextTarget.x += (s.scrollVelocity || 0) * 0.0005
+    // Physical camera target lag & apex tracking
+    nextTarget.x += (s.scrollVelocity || 0) * 0.0005 + pointer.current.x * -1.5
     nextTarget.z += (s.scrollVelocity || 0) * -0.0002
 
     // Directional G-Force: Accelerate (positive) expands FOV, Brake (negative) compresses FOV

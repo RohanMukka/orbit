@@ -46,9 +46,11 @@ export function CyberRain() {
       let z = positions[i * 3 + 2]
       
       const launchDeflect = s.launching ? speeds[i] * 5.0 * dt : 0
+      const aerodynamicCurve = Math.sin(x * 0.5) * Math.abs(state.pointer.x) * 5.0 * dt
+      
       y -= (speeds[i] + (s.scrollVelocity || 0) * 0.5) * dt - launchDeflect
       x += state.pointer.x * 2.0 * dt
-      z -= (s.scrollVelocity || 0) * dt * 0.3
+      z -= ((s.scrollVelocity || 0) * dt * 0.3) - aerodynamicCurve
       
       if (y < -5) y += 20
       if (z > 20) z -= 40
