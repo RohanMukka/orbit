@@ -109,6 +109,8 @@ function Floor() {
   const showGrid = view === 'wire' || exploded
 
   const gridRef = useRef<THREE.GridHelper>(null)
+  const targetColor = useMemo(() => new THREE.Color(), [])
+  const whiteColor = useMemo(() => new THREE.Color('#ffffff'), [])
 
   useFrame((state, dt) => {
     const launching = peek().launching
@@ -118,11 +120,12 @@ function Floor() {
         gridRef.current.position.x = (gridRef.current.position.x % 1.0)
       }
       const mat = gridRef.current.material as THREE.LineBasicMaterial
-      mat.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+      targetColor.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+      mat.color.lerp(targetColor, 0.1)
     } else if (gridRef.current) {
       gridRef.current.position.x = 0
       const mat = gridRef.current.material as THREE.LineBasicMaterial
-      mat.color.set('#ffffff')
+      mat.color.lerp(whiteColor, 0.1)
     }
   })
 
@@ -172,18 +175,22 @@ function Streaks() {
   )
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
+  const targetColor = useMemo(() => new THREE.Color(), [])
+  const streakBaseColor = useMemo(() => new THREE.Color('#9db4ff'), [])
+
   useFrame((state, dt) => {
     if (!ref.current) return
-    const launching = peek().launching
-    const P = shapedProfiles(peek().shape)
+    const s = peek()
+    const launching = s.launching
+    const P = shapedProfiles(s.shape)
+    const halfLen = CAR.length / 2
 
-    seeds.forEach((s, i) => {
-      s.offset += s.speed * (launching ? 15.0 : 1.0) * dt
-      const x = (s.offset % 20) - 10
-      let y = s.y
-      let z = s.z + (state.pointer.x * s.speed * 0.1)
+    seeds.forEach((seed, i) => {
+      seed.offset += seed.speed * (launching ? 15.0 : 1.0) * dt
+      const x = (seed.offset % 20) - 10
+      let y = seed.y
+      let z = seed.z + (state.pointer.x * seed.speed * 0.1)
 
-      const halfLen = CAR.length / 2
       if (x > -halfLen && x < halfLen) {
          const u = x / CAR.length + 0.5
          const hw = P.halfWidth.at(u)
@@ -199,7 +206,7 @@ function Streaks() {
 
       dummy.position.set(-x, y, z)
       // Since it's not rotated, plane is in XY. Make it scale in X.
-      dummy.scale.set(s.len * (launching ? 15.0 : 1.0), 0.015, 1)
+      dummy.scale.set(seed.len * (launching ? 15.0 : 1.0), 0.015, 1)
       dummy.rotation.z = state.pointer.x * 0.1
       dummy.updateMatrix()
       ref.current.setMatrixAt(i, dummy.matrix)
@@ -207,9 +214,10 @@ function Streaks() {
     ref.current.instanceMatrix.needsUpdate = true
     if (streakMatRef.current) {
       if (launching) {
-        streakMatRef.current.color.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+        targetColor.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
+        streakMatRef.current.color.lerp(targetColor, 0.1)
       } else {
-        streakMatRef.current.color.set('#9db4ff')
+        streakMatRef.current.color.lerp(streakBaseColor, 0.1)
       }
     }
   })

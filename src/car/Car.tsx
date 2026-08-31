@@ -456,7 +456,6 @@ export function Car(props: ComponentProps<'group'>) {
 
   const targetColor = useMemo(() => new THREE.Color(), [])
   const cyanColor = useMemo(() => new THREE.Color('#00e5ff'), [])
-  const wireColor = useMemo(() => new THREE.Color('#00ffcc'), [])
 
   useFrame((state, dt) => {
     const launching = peek().launching
