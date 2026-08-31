@@ -272,8 +272,11 @@ export function Overlay() {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
+  const vel = Math.abs(scrollVelocity || 0)
+  const rattleX = vel > 30 ? Math.sin(Date.now() * 0.5) * (vel * 0.05) : 0
+  const rattleY = vel > 30 ? Math.cos(Date.now() * 0.6) * (vel * 0.05) : 0
   const rotX = launching ? 2 : (scrollVelocity || 0) * -0.02;
-  const transformStr = `scale(${launching ? 1.03 : 1}) perspective(1000px) rotateX(${rotX}deg) translateY(${launching ? -1 : 0}%)`;
+  const transformStr = `translate3d(${rattleX}px, ${rattleY}px, 0) scale(${launching ? 1.03 : 1}) perspective(1000px) rotateX(${rotX}deg) translateY(${launching ? -1 : 0}%)`;
 
   return (
     <>
