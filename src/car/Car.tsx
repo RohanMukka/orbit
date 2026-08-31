@@ -51,8 +51,9 @@ function Wheel({ x, z, width, front }: { x: number; z: number; width: number; fr
 
   useFrame((state, dt) => {
     const s = peek()
+    const rwdBias = !front && s.scrollVelocity > 50 ? (s.scrollVelocity * 0.05) : 0
     const scrollBoost = (s.scrollVelocity || 0) * 0.1
-    let target = (s.spin ? 5.4 : 0) + scrollBoost
+    let target = (s.spin ? 5.4 : 0) + scrollBoost + rwdBias
     if (s.launching) target = 100.0 // Burnout speeds
     group.current.userData.v = THREE.MathUtils.damp(group.current.userData.v ?? 0, Math.max(0, target), 2.5, dt)
     group.current.rotation.z -= group.current.userData.v * dt
@@ -466,6 +467,7 @@ export function Car(props: ComponentProps<'group'>) {
     paintMat.envMapIntensity = 1.35 + Math.sin(state.clock.elapsedTime * 2.0) * 0.4 + scrollVel * 0.02
     paintMat.metalness = THREE.MathUtils.damp(paintMat.metalness, f.metalness + scrollVel * 0.005, 5, dt)
     glassMat.envMapIntensity = 2.0 + Math.sin(state.clock.elapsedTime * 2.0) * 0.2 + scrollVel * 0.05
+    glassMat.transmission = THREE.MathUtils.damp(glassMat.transmission, 0.8 - scrollVel * 0.001, 5, dt)
     if (launching && groupRef.current) {
       const rumble = Math.sin(state.clock.elapsedTime * 60) * 0.015
       const velShake = Math.abs(peek().scrollVelocity || 0) * 0.0001

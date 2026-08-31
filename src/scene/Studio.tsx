@@ -123,7 +123,9 @@ function Floor() {
       targetColor.setHSL((state.clock.elapsedTime * 5.0) % 1.0, 1.0, 0.5)
       mat.color.lerp(targetColor, 0.1)
     } else if (gridRef.current) {
-      gridRef.current.position.x = 0
+      gridRef.current.position.x -= (peek().scrollVelocity || 0) * dt * 0.1
+      if (gridRef.current.position.x < -1.0) gridRef.current.position.x = (gridRef.current.position.x % 1.0)
+      if (gridRef.current.position.x > 1.0) gridRef.current.position.x = (gridRef.current.position.x % 1.0)
       const mat = gridRef.current.material as THREE.LineBasicMaterial
       mat.color.lerp(whiteColor, 0.1)
     }
